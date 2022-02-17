@@ -24,6 +24,7 @@ cd /path/to/projects/dir
 git clone https://github.com/gwern/mueval.git
 cd mueval
 echo 'packages .\n\nwrite-ghc-environment-files: always\n' > cabal.project
+cabal build
 cabal install --overwrite-policy=always
 ```
 
@@ -48,6 +49,7 @@ cd lambdabot-telegram-plugins
 cabal install --overwrite-policy=always
 cp /path/to/projects/dir/mueval/.ghc* /path/to/projects/dir/lambdabot-telegram-plugins
 perl -pi -e 's/.*mueval.*//g' .ghc*
+cabal build
 ```
 
 Add following line into `.ghc*` env file:
