@@ -1,6 +1,5 @@
 module Lambdabot.Plugin.Telegram.Message where
 
-import Codec.Binary.UTF8.String
 import Data.Text
 import qualified Data.Text as Text
 
@@ -16,7 +15,7 @@ makeIrcMessage chatId msg = IrcMessage
   , ircMsgLBName  = "telegram"
   , ircMsgPrefix  = "null!n=user@" ++ Text.unpack chatId
   , ircMsgCommand = "TGMSG"
-  , ircMsgParams  = ["telegram", ":" ++ (encodeString (Text.unpack msg)) ]
+  , ircMsgParams  = ["telegram", ":" ++ ((Text.unpack msg)) ]
   }
 
 getTgChatId :: IrcMessage -> Text
