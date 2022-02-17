@@ -85,7 +85,7 @@ feed chatId msg = do
             _      -> cmdPrefix ++ dropWhile (== ' ') (Text.unpack msg)
     -- note that `msg'` is unicode, but lambdabot wants utf-8 lists of bytes
     lb . void . timeout (15 * 1000 * 1000) . received $
-      makeIrcMessage chatId (Text.pack msg')
+      makeIrcMessage chatId (Text.pack $ encodeString msg')
 
 handleMsg :: IrcMessage -> Telegram ()
 handleMsg msg = do
