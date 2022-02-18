@@ -1,0 +1,5 @@
+dist-newstyle
+*.log
+log
+*.pid
+.ghc*
