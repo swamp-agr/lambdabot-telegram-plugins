@@ -8,6 +8,7 @@ import Control.Monad.State
 import Data.Char
 import Data.Coerce
 import Data.Maybe
+import Data.Text (Text)
 import qualified Data.Text as Text
 import Telegram.Bot.API
 import Telegram.Bot.Simple
@@ -19,32 +20,45 @@ import Lambdabot.Plugin.Telegram.Shared
 
 type Model = TelegramState
 
+class FromCommand command where
+  getMessage :: command -> Msg
+
+  getPrefix :: command -> Text
+
+fromCommand :: FromCommand command => command -> Msg
+fromCommand cmd = old { msgMessage = getPrefix cmd <> " " <> msgMessage old }
+    where
+      old = getMessage cmd
+
 data Action = SendEverything Msg | SendModule ModuleCmd | SendBack Msg
 
-data ModuleCmd = Eval EvalCmd
+data ModuleCmd = EvalModule EvalCmd | CheckModule CheckCmd
 
 data EvalCmd = Let Msg | Undefine Msg | Run Msg
 
 -- FIXME: generalise via typeclass and generic
 
-getPrefix :: EvalCmd -> Text.Text
-getPrefix = \case
-  Let _ -> "@let"
-  Undefine _ -> "@undefine"
-  Run _ -> "@run"
+instance FromCommand EvalCmd where
+  getPrefix = \case
+    Let _ -> "@let"
+    Undefine _ -> "@undefine"
+    Run _ -> "@run"
+
+  getMessage = \case
+    Let cmd -> cmd
+    Undefine cmd -> cmd
+    Run cmd -> cmd
+
+data CheckCmd = Check Msg
 
 -- FIXME: generalise via typeclass and generic
 
-getMsg :: EvalCmd -> Msg
-getMsg = \case
-  Let cmd -> cmd
-  Undefine cmd -> cmd
-  Run cmd -> cmd
+instance FromCommand CheckCmd where
+  getPrefix = \case
+    Check _ -> "@check"
 
-prependEvalCommand :: EvalCmd -> Msg
-prependEvalCommand cmd = old { msgMessage = getPrefix cmd <> " " <> msgMessage old }
-  where
-    old = getMsg cmd
+  getMessage = \case
+    Check cmd -> cmd
 
 telegramLambdaBot :: TelegramState -> BotApp Model Action
 telegramLambdaBot tgstate = BotApp
@@ -57,10 +71,11 @@ telegramLambdaBot tgstate = BotApp
 updateToAction :: Model -> Update -> Maybe Action
 updateToAction _ update
   | isCommand "irc" update = SendEverything <$> updateToMsg update
-  | isCommand "let" update = SendModule <$> (Eval <$> (Let <$> updateToMsg update))
-  | isCommand "run" update = SendModule <$> (Eval <$> (Run <$> updateToMsg update))
-  | isCommand "define" update = SendModule <$> (Eval <$> (Let <$> updateToMsg update))
-  | isCommand "undefine" update = SendModule <$> (Eval <$> (Undefine <$> updateToMsg update))
+  | isCommand "let" update = SendModule <$> (EvalModule <$> (Let <$> updateToMsg update))
+  | isCommand "run" update = SendModule <$> (EvalModule <$> (Run <$> updateToMsg update))
+  | isCommand "define" update = SendModule <$> (EvalModule <$> (Let <$> updateToMsg update))
+  | isCommand "undefine" update = SendModule <$> (EvalModule <$> (Undefine <$> updateToMsg update))
+  | isCommand "check" update = SendModule <$> (CheckModule <$> (Check <$> updateToMsg update))
   | otherwise = Nothing
   where
     isCommand cmd = isJust . parseUpdate (Update.command cmd)
@@ -69,13 +84,14 @@ updateToAction _ update
     updateToMsg upd =
       Msg <$> (fmap intToText . updateChatId) upd <*> (fmap dropCommand . updateMessageText) upd
 
-handleEval :: EvalCmd -> Model -> Eff Action Model
-handleEval evalCmd model = model <# do
-  liftIO $ writeInput (prependEvalCommand evalCmd) model
+handlePluginCommand :: FromCommand cmd => cmd -> Model -> Eff Action Model
+handlePluginCommand cmd model = model <# do
+  liftIO $ writeInput (fromCommand cmd) model
   return ()
 
 handleModuleAction :: ModuleCmd -> Model -> Eff Action Model
-handleModuleAction (Eval cmd) model = handleEval cmd model 
+handleModuleAction (EvalModule cmd) model = handlePluginCommand cmd model 
+handleModuleAction (CheckModule cmd) model = handlePluginCommand cmd model
 
 handleAction :: Action -> Model -> Eff Action Model
 handleAction (SendEverything msg) model = model <# do
