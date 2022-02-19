@@ -57,18 +57,17 @@ updateToAction _ update
   | isCommand "check" update = SendModule <$> (CheckModule <$> (Check <$> updateToMsg update))
   -- djinn commands
   | isCommand "djinn" update = SendModule <$> (DjinnModule <$> (Djinn <$> updateToMsg update))
-  | isCommand "djinn-add" update
+  | isCommand "djinnadd" update
   = SendModule <$> (DjinnModule <$> (DjinnAdd <$> updateToMsg update))
-
-  | isCommand "djinn-del" update
+  | isCommand "djinndel" update
   = SendModule <$> (DjinnModule <$> (DjinnDel <$> updateToMsg update))
-  | isCommand "djinn-env" update
+  | isCommand "djinnenv" update
   = SendModule <$> (DjinnModule <$> (DjinnEnv <$> updateToMsg update))
-  | isCommand "djinn-names" update
+  | isCommand "djinnnames" update
   = SendModule <$> (DjinnModule <$> (DjinnNames <$> updateToMsg update))
-  | isCommand "djinn-clr" update
+  | isCommand "djinnclr" update
   = SendModule <$> (DjinnModule <$> (DjinnClr <$> updateToMsg update))
-  | isCommand "djinn-ver" update
+  | isCommand "djinnver" update
   = SendModule <$> (DjinnModule <$> (DjinnVer <$> updateToMsg update))
   | otherwise = Nothing
   where
