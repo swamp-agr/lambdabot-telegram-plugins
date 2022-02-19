@@ -25,7 +25,11 @@ type Model = TelegramState
 
 data Action = SendEverything Msg | SendModule ModuleCmd | SendBack Msg
 
-data ModuleCmd = EvalModule EvalCmd | CheckModule CheckCmd | DjinnModule DjinnCmd
+data ModuleCmd
+  = EvalModule EvalCmd
+  | CheckModule CheckCmd
+  | DjinnModule DjinnCmd
+  | FreeModule FreeCmd
 
 data EvalCmd = Let Msg | Undefine Msg | Run Msg
   deriving (Generic, FromCommand)
@@ -34,6 +38,9 @@ data CheckCmd = Check Msg
   deriving (Generic, FromCommand)
 
 data DjinnCmd = Djinn Msg | DjinnAdd Msg | DjinnDel Msg | DjinnEnv Msg | DjinnNames Msg | DjinnClr Msg | DjinnVer Msg
+  deriving (Generic, FromCommand)
+
+data FreeCmd = Free Msg
   deriving (Generic, FromCommand)
 
 telegramLambdaBot :: TelegramState -> BotApp Model Action
@@ -69,6 +76,8 @@ updateToAction _ update
   = SendModule <$> (DjinnModule <$> (DjinnClr <$> updateToMsg update))
   | isCommand "djinnver" update
   = SendModule <$> (DjinnModule <$> (DjinnVer <$> updateToMsg update))
+  -- free commands
+  | isCommand "free" update = SendModule <$> (FreeModule <$> (Free <$> updateToMsg update))
   | otherwise = Nothing
   where
     isCommand cmd = isJust . parseUpdate (Update.command cmd)
@@ -86,6 +95,7 @@ handleModuleAction :: ModuleCmd -> Model -> Eff Action Model
 handleModuleAction (EvalModule cmd) model = handlePluginCommand cmd model 
 handleModuleAction (CheckModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (DjinnModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (FreeModule cmd) model = handlePluginCommand cmd model
 
 handleAction :: Action -> Model -> Eff Action Model
 handleAction (SendEverything msg) model = model <# do
