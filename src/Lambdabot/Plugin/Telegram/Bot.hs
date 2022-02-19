@@ -33,7 +33,6 @@ data ModuleCmd
   | FreeModule FreeCmd
   | HaddockModule HaddockCmd
   | HoogleModule HoogleCmd
-  | HoogleModule' (MaybeWith ('AtEnd "+") HoogleCmd)
 
 data EvalCmd = Let Msg | Undefine Msg | Run Msg
   deriving (Generic, FromCommand)
@@ -93,8 +92,6 @@ updateToAction _ update
   -- hoogle
   | isCommand "hoogle" update
   = SendModule <$> (HoogleModule <$> (Hoogle <$> updateToMsg update))
-  | isCommand "hoogle+" update
-  = SendModule <$> (HoogleModule' <$> ((MaybeWith . Hoogle) <$> updateToMsg update))
   | otherwise = Nothing
   where
     isCommand cmd = isJust . parseUpdate (Update.command cmd)
@@ -115,7 +112,6 @@ handleModuleAction (DjinnModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (FreeModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (HaddockModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (HoogleModule cmd) model = handlePluginCommand cmd model
-handleModuleAction (HoogleModule' cmd) model = handlePluginCommand cmd model
 
 handleAction :: Action -> Model -> Eff Action Model
 handleAction (SendEverything msg) model = model <# do
