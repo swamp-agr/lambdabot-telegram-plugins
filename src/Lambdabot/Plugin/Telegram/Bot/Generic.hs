@@ -1,18 +1,24 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 module Lambdabot.Plugin.Telegram.Bot.Generic where
 
 import Data.Char
 import Data.Text (Text)
+import Data.Proxy
 import qualified Data.Text as Text
 import GHC.Generics
+import GHC.TypeLits
 
 import Lambdabot.Plugin.Telegram.Shared
 
@@ -82,3 +88,13 @@ toKebabCase txt =
         let (begin, end) = Text.splitAt ix txt'
         in Text.concat [ begin, "-", Text.toLower end ]
   in Text.toLower $ foldr go txt onlyUpperIndices
+
+data MaybeWith (modifier :: Modifier) a = MaybeWith a
+
+data Modifier = AtEnd Symbol
+
+instance (KnownSymbol postfix, FromCommand a, modifier ~ 'AtEnd postfix) =>
+  FromCommand (MaybeWith modifier a) where
+
+    getMessage (MaybeWith x) = getMessage x
+    getPrefix (MaybeWith x) = getPrefix x <> Text.pack (symbolVal (Proxy @postfix))

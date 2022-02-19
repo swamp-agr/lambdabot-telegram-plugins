@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -30,6 +31,8 @@ data ModuleCmd
   | CheckModule CheckCmd
   | DjinnModule DjinnCmd
   | FreeModule FreeCmd
+  | HaddockModule HaddockCmd
+  | HoogleModule HoogleCmd
 
 data EvalCmd = Let Msg | Undefine Msg | Run Msg
   deriving (Generic, FromCommand)
@@ -41,6 +44,12 @@ data DjinnCmd = Djinn Msg | DjinnAdd Msg | DjinnDel Msg | DjinnEnv Msg | DjinnNa
   deriving (Generic, FromCommand)
 
 data FreeCmd = Free Msg
+  deriving (Generic, FromCommand)
+
+data HaddockCmd = Index Msg
+  deriving (Generic, FromCommand)
+
+data HoogleCmd = Hoogle Msg
   deriving (Generic, FromCommand)
 
 telegramLambdaBot :: TelegramState -> BotApp Model Action
@@ -78,6 +87,11 @@ updateToAction _ update
   = SendModule <$> (DjinnModule <$> (DjinnVer <$> updateToMsg update))
   -- free commands
   | isCommand "free" update = SendModule <$> (FreeModule <$> (Free <$> updateToMsg update))
+  -- haddock
+  | isCommand "index" update = SendModule <$> (HaddockModule <$> (Index <$> updateToMsg update))
+  -- hoogle
+  | isCommand "hoogle" update
+  = SendModule <$> (HoogleModule <$> (Hoogle <$> updateToMsg update))
   | otherwise = Nothing
   where
     isCommand cmd = isJust . parseUpdate (Update.command cmd)
@@ -96,6 +110,8 @@ handleModuleAction (EvalModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (CheckModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (DjinnModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (FreeModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (HaddockModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (HoogleModule cmd) model = handlePluginCommand cmd model
 
 handleAction :: Action -> Model -> Eff Action Model
 handleAction (SendEverything msg) model = model <# do
