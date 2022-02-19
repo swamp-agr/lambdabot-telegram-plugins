@@ -1,5 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Lambdabot.Plugin.Telegram.Bot where
 
@@ -8,8 +10,8 @@ import Control.Monad.State
 import Data.Char
 import Data.Coerce
 import Data.Maybe
-import Data.Text (Text)
 import qualified Data.Text as Text
+import GHC.Generics
 import Telegram.Bot.API
 import Telegram.Bot.Simple
 import Telegram.Bot.Simple.UpdateParser (parseUpdate, updateMessageText)
@@ -17,48 +19,22 @@ import qualified Telegram.Bot.Simple.UpdateParser as Update
 import Text.Read (readMaybe)
 
 import Lambdabot.Plugin.Telegram.Shared
+import Lambdabot.Plugin.Telegram.Bot.Generic
 
 type Model = TelegramState
 
-class FromCommand command where
-  getMessage :: command -> Msg
-
-  getPrefix :: command -> Text
-
-fromCommand :: FromCommand command => command -> Msg
-fromCommand cmd = old { msgMessage = getPrefix cmd <> " " <> msgMessage old }
-    where
-      old = getMessage cmd
-
 data Action = SendEverything Msg | SendModule ModuleCmd | SendBack Msg
 
-data ModuleCmd = EvalModule EvalCmd | CheckModule CheckCmd
+data ModuleCmd = EvalModule EvalCmd | CheckModule CheckCmd | DjinnModule DjinnCmd
 
 data EvalCmd = Let Msg | Undefine Msg | Run Msg
-
--- FIXME: generalise via typeclass and generic
-
-instance FromCommand EvalCmd where
-  getPrefix = \case
-    Let _ -> "@let"
-    Undefine _ -> "@undefine"
-    Run _ -> "@run"
-
-  getMessage = \case
-    Let cmd -> cmd
-    Undefine cmd -> cmd
-    Run cmd -> cmd
+  deriving (Generic, FromCommand)
 
 data CheckCmd = Check Msg
+  deriving (Generic, FromCommand)
 
--- FIXME: generalise via typeclass and generic
-
-instance FromCommand CheckCmd where
-  getPrefix = \case
-    Check _ -> "@check"
-
-  getMessage = \case
-    Check cmd -> cmd
+data DjinnCmd = Djinn Msg | DjinnAdd Msg | DjinnDel Msg | DjinnEnv Msg | DjinnNames Msg | DjinnClr Msg | DjinnVer Msg
+  deriving (Generic, FromCommand)
 
 telegramLambdaBot :: TelegramState -> BotApp Model Action
 telegramLambdaBot tgstate = BotApp
@@ -70,12 +46,30 @@ telegramLambdaBot tgstate = BotApp
 
 updateToAction :: Model -> Update -> Maybe Action
 updateToAction _ update
+  -- proxy command
   | isCommand "irc" update = SendEverything <$> updateToMsg update
+  -- eval commands
   | isCommand "let" update = SendModule <$> (EvalModule <$> (Let <$> updateToMsg update))
   | isCommand "run" update = SendModule <$> (EvalModule <$> (Run <$> updateToMsg update))
   | isCommand "define" update = SendModule <$> (EvalModule <$> (Let <$> updateToMsg update))
   | isCommand "undefine" update = SendModule <$> (EvalModule <$> (Undefine <$> updateToMsg update))
+  -- check commands
   | isCommand "check" update = SendModule <$> (CheckModule <$> (Check <$> updateToMsg update))
+  -- djinn commands
+  | isCommand "djinn" update = SendModule <$> (DjinnModule <$> (Djinn <$> updateToMsg update))
+  | isCommand "djinn-add" update
+  = SendModule <$> (DjinnModule <$> (DjinnAdd <$> updateToMsg update))
+
+  | isCommand "djinn-del" update
+  = SendModule <$> (DjinnModule <$> (DjinnDel <$> updateToMsg update))
+  | isCommand "djinn-env" update
+  = SendModule <$> (DjinnModule <$> (DjinnEnv <$> updateToMsg update))
+  | isCommand "djinn-names" update
+  = SendModule <$> (DjinnModule <$> (DjinnNames <$> updateToMsg update))
+  | isCommand "djinn-clr" update
+  = SendModule <$> (DjinnModule <$> (DjinnClr <$> updateToMsg update))
+  | isCommand "djinn-ver" update
+  = SendModule <$> (DjinnModule <$> (DjinnVer <$> updateToMsg update))
   | otherwise = Nothing
   where
     isCommand cmd = isJust . parseUpdate (Update.command cmd)
@@ -92,6 +86,7 @@ handlePluginCommand cmd model = model <# do
 handleModuleAction :: ModuleCmd -> Model -> Eff Action Model
 handleModuleAction (EvalModule cmd) model = handlePluginCommand cmd model 
 handleModuleAction (CheckModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (DjinnModule cmd) model = handlePluginCommand cmd model
 
 handleAction :: Action -> Model -> Eff Action Model
 handleAction (SendEverything msg) model = model <# do
