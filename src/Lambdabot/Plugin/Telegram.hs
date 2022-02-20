@@ -17,6 +17,7 @@ import System.Timeout.Lifted
 import Telegram.Bot.Simple
 
 import Lambdabot.Command
+import Lambdabot.Config.Telegram
 import Lambdabot.IRC
 import Lambdabot.Monad
 import Lambdabot.Module
@@ -68,13 +69,16 @@ telegramPlugin = newModule
   }
 
 newTelegramState :: LB TelegramState
-newTelegramState = liftIO $ do
-  let size = 1000000
-      tgCurrent = 0
-  tgInput <- newTBQueueIO size
-  tgOutput <- newTBQueueIO size
+newTelegramState = do
+  tgBotName <- Text.pack <$> getConfig telegramBotName
+  liftIO $ do
+    putStrLn $ " bot name is : " <> Text.unpack (tgBotName)
+    let size = 1000000
+        tgCurrent = 0
+    tgInput <- newTBQueueIO size
+    tgOutput <- newTBQueueIO size
   
-  return TelegramState {..}
+    return TelegramState {..}
 
 feed :: Text -> Text -> Telegram ()
 feed chatId msg = do
