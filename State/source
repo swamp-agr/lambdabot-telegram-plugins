@@ -1,0 +1,1753 @@
+asTypeIn
+a `asTypeIn` f = a where _ = f a
+infixl 0 `asTypeIn`
+
+asAppliedTo
+f `asAppliedTo` a = f where _ = f a
+infixl 0 `asAppliedTo`
+
+Mu
+newtype Mu f = In { out :: f (Mu f) }
+
+In
+newtype Mu f = In { out :: f (Mu f) }
+
+out
+newtype Mu f = In { out :: f (Mu f) }
+
+Rec
+newtype Rec a = InR { outR :: Rec a -> a }
+
+InR
+newtype Rec a = InR { outR :: Rec a -> a }
+
+outR
+newtype Rec a = InR { outR :: Rec a -> a }
+
+(=<<)
+f =<< x = x >>= f
+
+Reader
+type Reader r = ReaderT r Identity
+--OR
+data Reader r a = Reader { runReader :: r -> a }
+
+Reader return
+return a = Reader $ \_ -> a
+
+Reader (>>=)
+m >>= k = Reader $ \r ->
+  let a = runReader m r
+  in  runReader (k a) r
+
+Writer
+type Writer w = WriterT w Identity
+--OR
+data Writer w a = Writer { runWriter :: (a, w) }
+
+Writer return
+return a = Writer (a, mempty)
+
+Writer (>>=)
+m >>= k = Writer $
+  let (a, w)  = runWriter m
+      (b, w') = runWriter (k a)
+  in  (b, w <> w')
+
+State
+type State s = StateT s Identity
+--OR
+data State s a = State { runState :: s -> (a, s) }
+
+State return
+return a = State $ \s -> (a, s)
+
+State (>>=)
+m >>= k = State $ \s ->
+  let (a, s') = runState m s
+  in  runState (k a) s'
+
+sequence
+sequence []     = return []
+sequence (x:xs) = do v <- x; vs <- sequence xs; return (v:vs)
+--OR
+sequence xs = foldr (liftM2 (:)) (return []) xs
+
+sequence_
+sequence_ ms = foldr (>>) (return ()) ms
+
+mapM
+mapM f as = sequence (map f as)
+
+mapM_
+mapM_ f as = sequence_ (map f as)
+
+guard
+guard True  = pure ()
+guard False = empty
+
+forM
+forM = flip mapM
+
+forM_
+forM_ = flip mapM_
+
+msum
+msum = foldr mplus mzero
+
+join
+join x = x >>= id
+
+forever
+forever a = let a' = a >> a' in a'
+
+void
+void = fmap (const ())
+
+mapAndUnzipM
+mapAndUnzipM f xs = sequence (map f xs) >>= return . unzip
+
+zipWithM
+zipWithM f xs ys = sequence (zipWith f xs ys)
+
+zipWithM_
+zipWithM_ f xs ys = sequence_ (zipWith f xs ys)
+
+foldM
+foldM _ a []     = return a
+foldM f a (x:xs) = f a x >>= \fax -> foldM f fax xs
+
+foldM_
+foldM_ f a xs = foldM f a xs >> return ()
+
+replicateM
+replicateM n x = sequence (replicate n x)
+
+replicateM_
+replicateM_ n x = sequence_ (replicate n x)
+
+when
+when p s = if p then s else return ()
+
+unless
+unless p s = if p then return () else s
+
+liftM
+liftM f m1 = do
+    x1 <- m1
+    return (f x1)
+
+liftM2
+liftM2 f m1 m2 = do
+    x1 <- m1
+    x2 <- m2
+    return (f x1 x2)
+
+liftM3
+liftM3 f m1 m2 m3 = do
+    x1 <- m1
+    x2 <- m2
+    x3 <- m3
+    return (f x1 x2 x3)
+
+liftM4
+liftM4 f m1 m2 m3 m4 = do
+    x1 <- m1
+    x2 <- m2
+    x3 <- m3
+    x4 <- m4
+    return (f x1 x2 x3 x4)
+
+ap
+ap = liftM2 id
+
+(>>)
+m >> k = m >>= \_ -> k
+
+fail
+fail s = error s
+
+compare
+compare x y | x == y    = EQ
+            | x <= y    = LT
+            | otherwise = GT
+
+comparing
+comparing p x y = compare (p x) (p y)
+
+(/=)
+x /= y = not (x == y)
+
+(==)
+x == y = not (x /= y)
+
+(<)
+x < y = case compare x y of
+          LT -> True
+          _  -> False
+
+(<=)
+x <= y = case compare x y of
+           GT -> False
+           _  -> True
+
+(>)
+x > y = case compare x y of
+          GT -> True
+          _  -> False
+
+(>=)
+x >= y = case compare x y of
+           LT -> False
+           _  -> True
+
+max
+max x y = if x <= y then y else x
+
+min
+min x y = if x <= y then x else y
+
+[]
+data [] a = [] | a : [a]
+
+foldr
+foldr f z []     = z
+foldr f z (x:xs) = f x (foldr f z xs)
+
+build
+build g = g (:) []
+
+augment
+augment g xs = g (:) xs
+
+map
+map _ []     = []
+map f (x:xs) = f x : map f xs
+
+(++)
+[]     ++ ys = ys
+(x:xs) ++ ys = x : (xs ++ ys)
+-- OR
+xs ++ ys = foldr (:) ys xs
+
+Bool
+data Bool = False | True deriving (Eq, Ord)
+
+(&&)
+True  && x = x
+False && _ = False
+
+(||)
+True  || _ = True
+False || x = x
+
+not
+not True  = False
+not False = True
+
+otherwise
+otherwise = True
+
+bool
+bool f _ False = f
+bool _ t True  = t
+
+()
+data () = ()
+
+Ordering
+data Ordering = LT | EQ | GT
+
+String
+type String = [Char]
+
+Char
+data Char = C# Char#
+
+Int
+data Int = I# Int#
+
+id
+id x = x
+
+const
+const x _ = x
+
+(.)
+(f . g) x = f (g x)
+
+flip
+flip f x y = f y x
+
+($)
+f $ x = f x
+
+($!)
+f $! x = x `seq` f x
+
+until
+until p f x | p x       = x
+            | otherwise = until p f (f x)
+
+asTypeOf
+asTypeOf = const
+
+head
+head (x:_) = x
+head []    = error "Prelude.head: empty list"
+
+tail
+tail (_:xs) = xs
+tail []     = error "Prelude.tail: empty list"
+
+last
+last [x]    = x
+last (_:xs) = last xs
+last []     = error "Prelude.last: empty list"
+
+init
+init [x]    = []
+init (x:xs) = x : init xs
+init []     = error "Prelude.init: empty list"
+
+null
+null []    = True
+null (_:_) = False
+
+filter
+filter _ []     = []
+filter p (x:xs)
+    | p x       = x : filter p xs
+    | otherwise = filter p xs
+
+foldl
+foldl f z []     = z
+foldl f z (x:xs) = foldl f (f z x) xs
+
+scanr
+scanr _ q0 []     = [q0]
+scanr f q0 (x:xs) = f x q : qs
+    where qs@(q:_) = scanr f q0 xs
+
+iterate
+iterate f x = x : iterate f (f x)
+
+repeat
+repeat x = xs where xs = x : xs
+
+replicate
+replicate n x = take n (repeat x)
+
+cycle
+cycle [] = undefined
+cycle xs = xs' where xs' = xs ++ xs'
+
+takeWhile
+takeWhile _ []                 = []
+takeWhile p (x:xs) | p x       = x : takeWhile p xs
+                   | otherwise = []
+
+take
+take n _      | n <= 0 = []
+take _ []              = []
+take n (x:xs)          = x : take (n-1) xs
+
+dropWhile
+dropWhile _ []                 = []
+dropWhile p (x:xs) | p x       = dropWhile p xs
+                   | otherwise = x:xs
+
+drop
+drop n xs     | n <= 0 = xs
+drop _ []              = []
+drop n (_:xs)          = drop (n-1) xs
+
+stripPrefix
+stripPrefix []     ys              = Just ys
+stripPrefix (x:xs) (y:ys) | x == y = stripPrefix xs ys
+stripPrefix _      _               = Nothing
+
+splitAt
+splitAt n xs = (take n xs, drop n xs)
+
+break
+break p = span (not . p)
+
+span
+span _ xs@[]                  = (xs, xs)
+span p xs@(x:xs') | p x       = let (ys,zs) = span p xs' in (x:ys,zs)
+                  | otherwise = ([],xs)
+
+reverse
+reverse = foldl (flip (:)) []
+
+and
+and = foldr (&&) True
+
+or
+or = foldr (||) False
+
+any
+any p = or . map p
+
+all
+all p = and . map p
+
+elem
+elem x = any (== x)
+
+notElem
+notElem x = all (/= x)
+
+lookup
+lookup _key []                      = Nothing
+lookup  key ((x,y):xys) | key == x  = Just y
+                        | otherwise = lookup key xys
+
+concatMap
+concatMap f = foldr ((++) . f) []
+
+concat
+concat = foldr (++) []
+
+(!!)
+xs     !! n | n < 0 = undefined
+[]     !! _         = undefined
+(x:_)  !! 0         = x
+(_:xs) !! n         = xs !! (n-1)
+
+zip
+zip (a:as) (b:bs) = (a,b) : zip as bs
+zip _      _      = []
+
+zip3
+zip3 (a:as) (b:bs) (c:cs) = (a,b,c) : zip3 as bs cs
+zip3 _      _      _      = []
+
+zipWith
+zipWith f (a:as) (b:bs) = f a b : zipWith f as bs
+zipWith _ _      _      = []
+
+unzip
+unzip = foldr (\(a,b) ~(as,bs) -> (a:as,b:bs)) ([],[])
+
+elemIndex
+elemIndex x = findIndex (x==)
+
+elemIndices
+elemIndices x = findIndices (x==)
+
+find
+find p = listToMaybe . filter p
+
+findIndex
+findIndex p = listToMaybe . findIndices p
+
+findIndices
+findIndices p xs = [ i | (x,i) <- zip xs [0..], p x]
+
+isPrefixOf
+isPrefixOf [] _          = True
+isPrefixOf _  []         = False
+isPrefixOf (x:xs) (y:ys) = x == y && isPrefixOf xs ys
+
+isSuffixOf
+isSuffixOf x y = reverse x `isPrefixOf` reverse y
+
+isInfixOf
+isInfixOf needle haystack = any (isPrefixOf needle) (tails haystack)
+
+nub
+nub = nubBy (==)
+--OR
+nub l = go l []
+  where go []     _       = []
+        go (x:xs) ls
+            | x `elem` ls = go xs ls
+            | otherwise   = x : go xs (x:ls)
+
+nubBy
+nubBy eq []     = []
+nubBy eq (x:xs) = x : nubBy eq (filter (\ y -> not (eq x y)) xs)
+
+delete
+delete = deleteBy (==)
+
+deleteBy
+deleteBy eq x []     = []
+deleteBy eq x (y:ys) = if x `eq` y then ys else y : deleteBy eq x ys
+
+(\\)
+(\\) = foldl (flip delete)
+
+union
+union = unionBy (==)
+
+unionBy
+unionBy eq xs ys = xs ++ foldl (flip (deleteBy eq)) (nubBy eq ys) xs
+
+intersect
+intersect = intersectBy (==)
+
+intersectBy
+intersectBy eq xs ys = [x | x <- xs, any (eq x) ys]
+
+intersperse
+intersperse _   []     = []
+intersperse _   [x]    = [x]
+intersperse sep (x:xs) = x : sep : intersperse sep xs
+
+intercalate
+intercalate xs xss = concat (intersperse xs xss)
+
+transpose
+transpose []             = []
+transpose ([]   : xss)   = transpose xss
+transpose ((x:xs) : xss) = (x : [h | (h:t) <- xss]) : transpose (xs : [ t | (h:t) <- xss])
+
+partition
+partition p xs = foldr (select p) ([],[]) xs
+    where select p x ~(ts,fs) | p x       = (x:ts,fs)
+                              | otherwise = (ts, x:fs)
+
+mapAccumL
+mapAccumL _ s []     = (s, [])
+mapAccumL f s (x:xs) = (s'',y:ys)
+   where (s', y ) = f s x
+         (s'',ys) = mapAccumL f s' xs
+
+insert
+insert e ls = insertBy (compare) e ls
+
+insertBy
+insertBy _   x [] = [x]
+insertBy cmp x ys@(y:ys') = case cmp x y of
+                                 GT -> y : insertBy cmp x ys'
+                                 _  -> x : ys
+
+maximum
+maximum [] = undefined
+maximum xs = foldl1 max xs
+
+minimum
+minimum [] = undefined
+minimum xs = foldl1 min xs
+
+genericLength
+genericLength []    = 0
+genericLength (_:l) = 1 + genericLength l
+
+group
+group = groupBy (==)
+
+groupBy
+groupBy _  []     = []
+groupBy eq (x:xs) = (x:ys) : groupBy eq zs
+    where (ys, zs) = span (eq x) xs
+
+inits
+inits []     = [[]]
+inits (x:xs) = [[]] ++ map (x:) (inits xs)
+
+tails
+tails []         = [[]]
+tails xxs@(_:xs) = xxs : tails xs
+
+sort
+sort = sortBy compare
+
+sortBy
+-- The actual definition used by GHC is an optimised mergesort.
+sortBy cmp = foldr (insertBy cmp) []
+
+sortWith
+sortWith f = sortBy (\x y -> compare (f x) (f y))
+
+the
+the (x:xs)
+  | all (x ==) xs = x
+  | otherwise     = error "GHC.Exts.the: non-identical elements"
+the []            = error "GHC.Exts.the: empty list"
+
+unfoldr
+unfoldr f b = case f b of
+    Just (a, b') -> a : unfoldr f b'
+    Nothing      -> []
+
+foldl'
+foldl' f a []     = a
+foldl' f a (x:xs) = let a' = f a x in a' `seq` foldl' f a' xs
+
+foldl1
+foldl1 f (x:xs) = foldl f x xs
+foldl1 _ []     = undefined
+
+sum
+sum = foldl (+) 0
+
+product
+product = foldl (*) 1
+
+unlines
+unlines = concatMap (++ "\n")
+
+unwords
+unwords [] = ""
+unwords ws = foldr1 (\w s -> w ++ ' ':s) ws
+
+words
+words s = case dropWhile isSpace s of
+    "" -> []
+    s' -> w : words s'' where (w, s'') = break isSpace s'
+
+Maybe
+data Maybe a = Nothing | Just a
+
+maybe
+maybe n _ Nothing  = n
+maybe _ f (Just x) = f x
+
+isJust
+isJust Nothing = False
+isJust _       = True
+
+isNothing
+isNothing Nothing = True
+isNothing _       = False
+
+fromJust
+fromJust Nothing  = undefined
+fromJust (Just x) = x
+
+fromMaybe
+fromMaybe d Nothing  = d
+fromMaybe _ (Just v) = v
+
+maybeToList
+maybeToList Nothing  = []
+maybeToList (Just x) = [x]
+
+listToMaybe
+listToMaybe []    = Nothing
+listToMaybe (a:_) = Just a
+
+catMaybes
+catMaybes ls = [x | Just x <- ls]
+
+data Either a b = Left a | Right b
+
+either
+either f _ (Left x)  = f x
+either _ g (Right y) = g y
+
+lefts
+lefts x = [a | Left a <- x]
+
+rights
+rights x = [a | Right a <- x]
+
+isLeft
+isLeft (Left  _) = True
+isLeft (Right _) = False
+
+isRight
+isRight (Left  _) = False
+isRight (Right _) = True
+
+fst
+fst (x,_) = x
+
+snd
+snd (_,y) = y
+
+curry
+curry f x y = f (x, y)
+
+uncurry
+uncurry f p = f (fst p) (snd p)
+
+fix
+fix f = let x = f x in x
+
+on
+(*) `on` f = \x y -> f x * f y
+
+Complex
+data (RealFloat a) => Complex a = !a :+ !a
+
+realPart
+realPart (x :+ _) = x
+
+imagPart
+imagPart (_ :+ y) = y
+
+conjugate
+conjugate (x:+y) = x :+ (-y)
+
+mkPolar
+mkPolar r theta = r * cos theta :+ r * sin theta
+
+cis
+cis theta = cos theta :+ sin theta
+
+polar
+polar z = (magnitude z, phase z)
+
+phase
+phase (0 :+ 0) = 0
+phase (x :+ y) = atan2 y x
+
+toDyn
+toDyn v = Dynamic (typeOf v) (unsafeCoerce v)
+
+fromDyn
+fromDyn (Dynamic t v) def
+  | typeOf def == t = unsafeCoerce v
+  | otherwise       = def
+
+fromDynamic
+fromDynamic (Dynamic t v) = case unsafeCoerce v of
+    r | t == typeOf r -> Just r
+      | otherwise     -> Nothing
+
+second f = arr swap >>> first f >>> arr swap
+    where swap ~(x,y) = (y,x)
+
+(***)
+f *** g = first f >>> second g
+
+(&&&)
+f &&& g = arr (\b -> (b,b)) >>> f *** g
+
+returnA
+returnA = arr id
+
+(^>>)
+f ^>> a = arr f >>> a
+
+(>>^)
+a >>^ f = a >>> arr f
+
+(<<<)
+f <<< g = g >>> f
+
+(<<^)
+a <<^ f = a <<< arr f
+
+(^<<)
+f ^<< a = arr f <<< a
+
+modifyIORef
+modifyIORef ref f = writeIORef ref . f =<< readIORef ref
+
+(<$>)
+f <$> a = fmap f a
+
+(<$)
+(<$) = (<$>) . const
+
+(*>)
+(*>) = liftA2 (const id)
+
+(<*)
+(<*) = liftA2 const
+
+(<**>)
+(<**>) = liftA2 (flip ($))
+
+liftA
+liftA f a = pure f <*> a
+
+liftA2
+liftA2 f a b = f <$> a <*> b
+
+optional
+optional v = Just <$> v <|> pure Nothing
+
+some
+some v = some_v
+  where many_v = some_v <|> pure []
+        some_v = (:) <$> v <*> many_v
+
+readMVar
+readMVar m = block $ do
+    a <- takeMVar m
+    putMVar m a
+    return a
+
+swapMVar
+swapMVar mvar new = block $ do
+    old <- takeMVar mvar
+    putMVar mvar new
+    return old
+
+withMVar m io = block $ do
+    a <- takeMVar m
+    b <- Exception.catch (unblock (io a)) (\e -> do putMVar m a; throw e)
+    putMVar m a
+    return b
+
+modifyMVar_
+modifyMVar_ m io = block $ do
+    a  <- takeMVar m
+    a' <- Exception.catch (unblock (io a)) (\e -> do putMVar m a; throw e)
+    putMVar m a'
+
+modifyMVar
+modifyMVar m io = block $ do
+    a      <- takeMVar m
+    (a',b) <- Exception.catch (unblock (io a)) (\e -> do putMVar m a; throw e)
+    putMVar m a'
+    return b
+
+handle
+handle = flip catch
+
+handleJust
+handleJust p = flip (catchJust p)
+
+mapException
+mapException f v = unsafePerformIO (catch (evaluate v) (\x -> throw (f x)))
+
+try
+try a = catch (a >>= \ v -> return (Right v)) (\e -> return (Left e))
+
+bracket
+bracket before after thing = block $ do
+    a <- before
+    r <- catch (unblock (thing a)) (\e -> after a >> throw e)
+    after a
+    return r
+
+finally
+a `finally` sequel = block $ do
+    r <- catch (unblock a) (\e -> sequel >> throw e)
+    sequel
+    return r
+
+bracket_
+bracket_ before after thing = bracket before (const after) (const thing)
+
+putChar
+putChar c = hPutChar stdout c
+
+putStr
+putStr s = hPutStr stdout s
+
+putStrLn
+putStrLn s = do putStr s; putChar '\n'
+
+print
+print x = putStrLn (show x)
+
+getChar
+getChar = hGetChar stdin
+
+getLine
+getLine = hGetLine stdin
+
+getContents
+getContents = hGetContents stdin
+
+interact
+interact f = do s <- getContents; putStr (f s)
+
+readFile
+readFile name = openFile name ReadMode >>= hGetContents
+
+writeFile
+writeFile f txt = withFile f WriteMode (\ hdl -> hPutStr hdl txt)
+
+appendFile
+appendFile f txt = withFile f AppendMode (\ hdl -> hPutStr hdl txt)
+
+readLn
+readLn = do l <- getLine; r <- readIO l; return r
+
+hPutStrLn
+hPutStrLn hndl str = do hPutStr hndl str; hPutChar hndl '\n'
+
+withFile
+withFile name mode = bracket (openFile name mode) hClose
+
+exitFailure
+exitFailure = exitWith (ExitFailure 1)
+
+failIO
+failIO s = ioError (userError s)
+
+FilePath
+type FilePath = String
+
+IORef
+newtype IORef a = IORef (STRef RealWorld a)
+
+newIORef
+newIORef v = stToIO (newSTRef v) >>= \ var -> return (IORef var)
+
+readIORef
+readIORef (IORef var) = stToIO (readSTRef var)
+
+writeIORef
+writeIORef (IORef var) v = stToIO (writeSTRef var v)
+
+read
+read s = either error id (readEither s)
+
+reads
+reads = readsPrec minPrec
+
+readMaybe
+readMaybe s = case readEither s of
+                Left _  -> Nothing
+                Right a -> Just a
+
+readEither
+-- The old-style Read definition. The real one uses readPrec instead.
+readEither s =
+  let s' = dropWhile isSpace s
+  in  case [x | (x, rest) <- reads s', all isSpace rest] of
+        [x] -> Right x
+        []  -> Left "Prelude.read: no parse"
+        _   -> Left "Prelude.read: ambiguous parse"
+
+IOArray
+newtype IOArray i e = IOArray (STArray RealWorld i e)
+
+ExitCode
+data ExitCode = ExitSuccess | ExitFailure Int
+
+throw
+throw exception = raise# exception
+
+IOMode
+data IOMode = ReadMode | WriteMode | AppendMode | ReadWriteMode
+
+killThread
+killThread tid = throwTo tid (AsyncException ThreadKilled)
+
+STArray
+data STArray s i e = STArray !i !i (MutableArray# s e)
+
+(!)
+arr@(Array l u _) ! i = unsafeAt arr (index (l,u) i)
+
+bounds
+bounds (Array l u _) = (l,u)
+
+indices
+indices (Array l u _) = range (l,u)
+
+elems
+elems arr@(Array l u _) = [unsafeAt arr i | i <- [0 .. rangeSize (l,u) - 1]]
+
+assocs
+assocs arr@(Array l u _) = [(i, unsafeAt arr (unsafeIndex (l,u) i)) | i <- range (l,u)]
+
+(//)
+arr@(Array l u _) // ies = unsafeReplace arr [(index (l,u) i, e) | (i, e) <- ies]
+
+undefined
+undefined = error "Prelude.undefined"
+
+error
+error s = throw (ErrorCall s)
+
+catch
+catch m k = catchException m handler where handler (IOException err) = k err
+
+Float
+data Float = F# Float#
+
+Double
+data Double = D# Double#
+
+ForeignPtr
+data ForeignPtr a = ForeignPtr Addr# ForeignPtrContents
+
+ForeignPtrContents
+data ForeignPtrContents = PlainForeignPtr !(IORef [IO ()])
+                        | MallocPtr (MutableByteArray# RealWorld) !(IORef [IO ()])
+                        | PlainPtr  (MutableByteArray# RealWorld)
+
+Int16
+data Int16 = I16# Int#
+
+Int32
+data Int32 = I32# Int32#
+
+Int64
+data Int64 = I64# Int64#
+
+Integer
+data Integer = S# Int#
+             | J# Int# ByteArray#
+
+(-)
+x - y = x + negate y
+
+negate
+negate x = 0 - x
+
+subtract
+subtract x y = y - x
+
+Ptr
+data Ptr a = Ptr Addr#
+
+nullPtr
+nullPtr = Ptr nullAddr#
+
+castPtr
+castPtr (Ptr addr) = Ptr addr
+
+plusPtr
+plusPtr (Ptr addr) (I# d) = Ptr (plusAddr# addr d)
+
+minusPtr
+minusPtr (Ptr a1) (Ptr a2) = I# (minusAddr# a1 a2)
+
+Ratio
+data (Integral a) => Ratio a = !a :% !a
+
+Rational
+type Rational = Ratio Integer
+
+reduce
+reduce _ 0 = undefined
+reduce x y = (x `quot` d) :% (y `quot` d)
+    where d = gcd x y
+
+(%)
+x % y = reduce (x * signum y) (abs y)
+
+numerator
+numerator (x :% _) = x
+
+denominator
+denominator (_ :% y) = y
+
+fromIntegral
+fromIntegral = fromInteger . toInteger
+
+realToFrac
+realToFrac = fromRational . toRational
+
+even
+even n = n `rem` 2 == 0
+
+odd
+odd = not . even
+
+(^)
+x ^ 0            = 1
+x ^ n | n > 0    = f x (n-1) x
+  where
+    f _ 0 y = y
+    f x n y = g x n
+        where g x n | even n    = g (x*x) (n `quot` 2)
+                    | otherwise = f x (n-1) (x*y)
+_ ^ _            = error "Prelude.^: negative exponent"
+
+(^^)
+x ^^ n = if n >= 0 then x^n else recip (x^(negate n))
+
+gcd
+gcd x y = gcd' (abs x) (abs y)
+   where gcd' a 0 = a
+         gcd' a b = gcd' b (a `rem` b)
+
+lcm
+lcm _ 0 = 0
+lcm 0 _ = 0
+lcm x y = abs ((x `quot` (gcd x y)) * y)
+
+ST
+newtype ST s a = ST (STRep s a)
+
+STRep
+type STRep s a = State# s -> (# State# s, a #)
+
+runST
+runST st = runSTRep (case st of { ST st_rep -> st_rep })
+
+runSTRep
+runSTRep st_rep = case st_rep realWorld# of (# _, r #) -> r
+
+ShowS
+type ShowS = String -> String
+
+showsPrec
+showsPrec _ x s = show x ++ s
+
+show
+show x = shows x ""
+
+stToIO
+stToIO (ST m) = IO m
+
+ioToST
+ioToST (IO m) = (ST m)
+
+unsafeIOToST
+unsafeIOToST (IO io) = ST $ \ s -> (unsafeCoerce# io) s
+
+unsafeSTToIO
+unsafeSTToIO (ST m) = IO (unsafeCoerce# m)
+
+scanl
+scanl f q ls = q : case ls of
+    []   -> []
+    x:xs -> scanl f (f q x) xs
+
+scanl1
+scanl1 f (x:xs) = scanl f x xs
+scanl1 _ []     = []
+
+foldr1
+foldr1 _ [x]    = x
+foldr1 f (x:xs) = f x (foldr1 f xs)
+foldr1 _ []     = undefined
+
+scanr1
+scanr1 f []     = []
+scanr1 f [x]    = [x]
+scanr1 f (x:xs) = f x q : qs where qs@(q:_) = scanr1 f xs
+
+trace
+trace string expr = unsafePerformIO $ do
+    hPutStrLn stderr string
+    return expr
+
+STRef
+data STRef s a = STRef (MutVar# s a)
+
+newSTRef
+newSTRef init = ST $ \s1# ->
+    case newMutVar# init s1# of
+      (# s2#, var# #) -> (# s2#, STRef var# #)
+
+readSTRef
+readSTRef (STRef var#) = ST $ \s1# -> readMutVar# var# s1#
+
+writeSTRef
+writeSTRef (STRef var#) val = ST $ \s1# ->
+    case writeMutVar# var# val s1# of
+      s2# -> (# s2#, () #)
+
+STRef (==)
+STRef v1# == STRef v2# = sameMutVar# v1# v2#
+
+Eq
+class Eq a where
+    (==), (/=) :: a -> a -> Bool
+
+Ord
+class (Eq a) => Ord a where
+    compare              :: a -> a -> Ordering
+    (<), (<=), (>), (>=) :: a -> a -> Bool
+    max, min             :: a -> a -> a
+
+Ix
+class (Ord a) => Ix a where
+    range     :: (a, a) -> [a]
+    index     :: (a, a) -> a -> Int
+    inRange   :: (a, a) -> a -> Bool
+    rangeSize :: (a, a) -> Int
+
+Bounded
+class Bounded a where
+    minBound, maxBound :: a
+
+Real
+class (Num a, Ord a) => Real a where
+    toRational :: a -> Rational
+
+Integral
+class (Real a, Enum a) => Integral a where
+    quot, rem, div, mod :: a -> a -> a
+    quotRem, divMod     :: a -> a -> (a, a)
+    toInteger           :: a -> Integer
+
+Fractional
+class (Num a) => Fractional a where
+    (/)          :: a -> a -> a
+    recip        :: a -> a
+    fromRational :: Rational -> a
+
+RealFrac
+class (Real a, Fractional a) => RealFrac a where
+    properFraction                  :: (Integral b) => a -> (b, a)
+    truncate, round, ceiling, floor :: (Integral b) => a -> b
+
+Show
+class Show a where
+    showsPrec :: Int -> a -> ShowS
+    show      :: a -> String
+    showList  :: [a] -> ShowS
+
+Enum
+class Enum a where
+    succ, pred               :: a -> a
+    toEnum                   :: Int -> a
+    fromEnum                 :: a -> Int
+    enumFrom                 :: a -> [a]
+    enumFromThen, enumFromTo :: a -> a -> [a]
+    enumFromThenTo           :: a -> a -> a -> [a]
+
+Splittable
+class Splittable t where
+    split :: t -> (t,t)
+
+Floating
+class (Fractional a) => Floating a where
+    pi                  :: a
+    exp, log, sqrt      :: a -> a
+    sin, cos, tan       :: a -> a
+    asin, acos, atan    :: a -> a
+    sinh, cosh, tanh    :: a -> a
+    asinh, acosh, atanh :: a -> a
+    (**), logBase       :: a -> a -> a
+
+Num
+class Num a where
+    (+), (-), (*)       :: a -> a -> a
+    negate, abs, signum :: a -> a
+    fromInteger         :: Integer -> a
+
+RandomGen
+class RandomGen g where
+   next     :: g -> (Int, g)
+   split    :: g -> (g, g)
+   genRange :: g -> (Int, Int)
+
+Random
+class Random a where
+  random    :: RandomGen g => g -> (a, g)
+  randoms   :: RandomGen g => g -> [a]
+  randomR   :: RandomGen g => (a, a) -> g -> (a, g)
+  randomRs  :: RandomGen g => (a, a) -> g -> [a]
+  randomRIO :: (a, a) -> IO a
+  randomIO  :: IO a
+
+Functor
+class Functor f where
+    fmap :: (a -> b) -> f a -> f b
+
+Read
+class Read a where
+  readsPrec    :: Int -> ReadS a
+  readList     :: ReadS [a]
+  readPrec     :: ReadPrec a
+  readListPrec :: ReadPrec [a]
+
+Applicative
+class Functor f => Applicative f where
+    pure  :: a -> f a
+    (<*>) :: f (a -> b) -> f a -> f b
+
+Alternative
+class Applicative f => Alternative f where
+    empty :: f a
+    (<|>) :: f a -> f a -> f a
+
+Monad
+class Applicative m => Monad m where
+    -- Note: Applicative wasn't a superclass before GHC 7.10
+    (>>=)  :: m a -> (a -> m b) -> m b
+    (>>)   :: m a -> m b -> m b
+    return :: a -> m a
+    fail   :: String -> m a
+
+MonadPlus
+class Alternative m => MonadPlus m where
+    -- Note: Alternative wasn't a superclass before GHC 7.10
+    mzero :: m a
+    mplus :: m a -> m a -> m a
+
+Monoid
+class Monoid a where
+    mempty  :: a
+    mappend :: a -> a -> a
+    mconcat :: [a] -> a
+
+(<>)
+(<>) = mappend
+
+Dual
+newtype Dual a = Dual { getDual :: a }
+
+getDual
+newtype Dual a = Dual { getDual :: a }
+
+Dual mempty
+mempty = Dual mempty
+
+Dual mappend
+Dual x `mappend` Dual y = Dual (y `mappend` x)
+
+Endo
+newtype Endo a = Endo { appEndo :: a -> a }
+
+appEndo
+newtype Endo a = Endo { appEndo :: a -> a }
+
+Endo mempty
+mempty = Endo id
+
+Endo mappend
+Endo f `mappend` Endo g = Endo (f . g)
+
+All
+newtype All = All { getAll :: Bool }
+
+getAll
+newtype All = All { getAll :: Bool }
+
+All mempty
+mempty = All True
+
+All mappend
+All x `mappend` All y = All (x && y)
+
+Any
+newtype Any = Any { getAny :: Bool }
+
+getAny
+newtype Any = Any { getAny :: Bool }
+
+Any mempty
+mempty = Any False
+
+Any mappend
+Any x `mappend` Any y = Any (x || y)
+
+Sum
+newtype Sum a = Sum { getSum :: a }
+
+getSum
+newtype Sum a = Sum { getSum :: a }
+
+Sum mempty
+mempty = Sum 0
+
+Sum mappend
+Sum x `mappend` Sum y = Sum (x + y)
+
+Product
+newtype Product a = Product { getProduct :: a }
+
+getProduct
+newtype Product a = Product { getProduct :: a }
+
+Product mempty
+mempty = Product 1
+
+Product mappend
+Product x `mappend` Product y = Product (x * y)
+
+First
+newtype First a = First { getFirst :: Maybe a }
+
+getFirst
+newtype First a = First { getFirst :: Maybe a }
+
+First mempty
+mempty = First Nothing
+
+First mappend
+r@(First (Just _)) `mappend` _ = r
+First Nothing      `mappend` r = r
+
+Last
+newtype Last a = Last { getLast :: Maybe a }
+
+getLast
+newtype Last a = Last { getLast :: Maybe a }
+
+Last mempty
+mempty = Last Nothing
+
+Last mappend
+_ `mappend` r@(Last (Just _)) = r
+r `mappend`    Last Nothing   = r
+
+Arrow
+class Arrow a where
+    arr, pure :: (b -> c) -> a b c
+    (>>>)     :: a b c -> a c d -> a b d
+    first     :: a b c -> a (b,d) (c,d)
+    second    :: a b c -> a (d,b) (d,c)
+    (***)     :: a b c -> a b' c' -> a (b,b') (c,c')
+    (&&&)     :: a b c -> a b c'  -> a b (c,c')
+
+Traversable
+class (Functor t, Foldable t) => Traversable t where
+    traverse  :: Applicative f => (a -> f b) -> t a -> f (t b)
+    sequenceA :: Applicative f => t (f a) -> f (t a)
+    mapM      :: Monad m => (a -> m b) -> t a -> m (t b)
+    sequence  :: Monad m => t (m a) -> m (t a)
+
+traverse_
+traverse_ h xs = foldr (\fx fxs -> h fx *> fxs) (pure ())
+--OR
+traverse_ h xs = traverse h xs *> pure ()
+
+map_
+map_ = flip traverse_
+
+IO fmap
+fmap f x = x >>= (return . f)
+
+IO (>>)
+m >> k = m >>= \ _ -> k
+
+IO return
+return x = returnIO x
+
+IO (>>=)
+m >>= k = bindIO m k
+
+IO fail
+fail s = failIO s
+
+IO mzero
+mzero = ioError (userError "mzero")
+
+IO mplus
+m `mplus` n = m `catch` \_ -> n
+
+[] (==)
+[]     == []     = True
+(x:xs) == (y:ys) = x == y && xs == ys
+_      == _      = False
+
+[] fmap
+fmap = map
+
+[] (>>=)
+xs >>= f = concatMap f xs
+
+[] (>>)
+xs >> ys = concatMap (const ys) xs
+
+[] return
+return x = [x]
+
+[] fail
+fail _ = []
+
+[] mzero
+mzero = []
+
+[] mplus
+mplus = (++)
+
+Maybe (>>=)
+(Just x) >>= k = k x
+Nothing  >>= _ = Nothing
+
+Maybe (>>)
+(Just _) >> k = k
+Nothing  >> _ = Nothing
+
+Maybe return
+return = Just
+
+Maybe fail
+fail _ = Nothing
+
+Maybe mzero
+mzero = Nothing
+
+Maybe mplus
+Nothing `mplus` ys = ys
+xs      `mplus` ys = xs
+
+Maybe fmap
+fmap _ Nothing  = Nothing
+fmap f (Just a) = Just (f a)
+
+Either fmap
+fmap _ (Left x) = Left x
+fmap f (Right y) = Right (f y)
+
+Either return
+return = Right
+
+Either (>>=)
+Left  l >>= _ = Left l
+Right r >>= k = k r
+
+Either fail
+fail msg = Left (strMsg msg)
+
+Either mzero
+mzero = Left noMsg
+
+Either mplus
+Left _ `mplus` n = n
+m      `mplus` _ = m
+
+Either mfix
+mfix f = let a = f $ case a of
+                        Right r -> r
+                        _       -> error "empty mfix argument"
+         in a
+
+() (==)
+() == () = True
+
+() (/=)
+() /= () = False
+
+() (<=)
+() <= () = True
+
+() (<)
+() < () = False
+
+() (>=)
+() >= () = True
+
+() (>)
+() > () = False
+
+() max
+max () () = ()
+
+() min
+min () () = ()
+
+() compare
+compare () () = EQ
+
+Char (==)
+(C# c1) == (C# c2) = c1 `eqChar#` c2
+(C# c1) /= (C# c2) = c1 `neChar#` c2
+
+Int (==)
+(==) = eqInt
+
+Int (/=)
+(/=) = neInt
+
+(->) fmap
+fmap = (.)
+
+(->) return
+return = const
+
+(->) (>>=)
+f >>= k = \ r -> k (f r) r
+
+(,) fmap
+fmap f (x,y) = (x, f y)
+
+(->) ask
+ask = id
+
+(->) local
+local f m = m . f
+
+(->) mfix
+mfix f = \ r -> let a = f a r in a
+
+IORef (==)
+IORef x == IORef y = x == y
+
+IOArray (==)
+IOArray x == IOArray y = x == y
+
+asks
+asks f = do
+    r <- ask
+    return (f r)
+
+Identity
+newtype Identity a = Identity { runIdentity :: a }
+
+Identity fmap
+fmap f m = Identity (f (runIdentity m))
+
+Identity return
+return a = Identity a
+
+Identity (>>=)
+m >>= k = k (runIdentity m)
+
+Identity mfix
+mfix f = Identity (fix (runIdentity . f))
+
+MonadCont
+class (Monad m) => MonadCont m where
+    callCC :: ((a -> m b) -> m a) -> m a
+
+Cont
+newtype Cont r a = Cont { runCont :: (a -> r) -> r }
+
+Cont fmap
+fmap f m = Cont $ \c -> runCont m (c . f)
+
+Cont return
+return a = Cont ($ a)
+
+Cont (>>=)
+m >>= k = Cont $ \c -> runCont m $ \a -> runCont (k a) c
+
+Cont callCC
+callCC f = Cont $ \c -> runCont (f (\a -> Cont $ \_ -> c a)) c
+
+ContT
+newtype ContT r m a = ContT { runContT :: (a -> m r) -> m r }
+
+ContT fmap
+fmap f m = ContT $ \c -> runContT m (c . f)
+
+ContT return
+return a = ContT ($ a)
+
+ContT (>>=)
+m >>= k = ContT $ \c -> runContT m (\a -> runContT (k a) c)
+
+ContT callCC
+callCC f = ContT $ \c -> runContT (f (\a -> ContT $ \_ -> c a)) c
+
+ContT ask
+ask = lift ask
+
+ContT local
+local f m = ContT $ \c -> do
+    r <- ask
+    local f (runContT m (local (const r) . c))
+
+Error
+class Error a where
+    noMsg  :: a
+    strMsg :: String -> a
+
+MonadError
+class (Monad m) => MonadError e m | m -> e where
+    throwError :: e -> m a
+    catchError :: m a -> (e -> m a) -> m a
+
+IO throwError
+throwError = ioError
+
+IO catchError
+catchError = catch
+
+ErrorT
+newtype ErrorT e m a = ErrorT { runErrorT :: m (Either e a) }
+
+ErrorT fmap
+fmap f m = ErrorT $ do
+    a <- runErrorT m
+    case a of Left  l -> return (Left l)
+              Right r -> return (Right (f r))
+
+ErrorT return
+return a = ErrorT $ return (Right a)
+
+ErrorT (>>=)
+m >>= k = ErrorT $ do
+    a <- runErrorT m
+    case a of Left  l -> return (Left l)
+              Right r -> runErrorT (k r)
+
+ErrorT fail
+fail msg = ErrorT $ return (Left (strMsg msg))
+
+ErrorT mzero
+mzero = ErrorT $ return (Left noMsg)
+
+ErrorT mplus
+m `mplus` n = ErrorT $ do
+    a <- runErrorT m
+    case a of Left  _ -> runErrorT n
+              Right r -> return (Right r)
+
+ErrorT mfix
+mfix f = ErrorT $ mfix $ \a -> runErrorT $ f $ case a of
+    Right r -> r
+    _       -> error "empty mfix argument"
+
+ErrorT ask
+ask = lift ask
+
+ErrorT local
+local f m = ErrorT $ local f (runErrorT m)
+
+MonadFix
+class (Monad m) => MonadFix m where
+    mfix :: (a -> m a) -> m a
+
+Maybe mfix
+mfix f = let a = f (unJust a) in a where unJust (Just x) = x
+
+[] mfix
+mfix f = case fix (f . head) of
+           []    -> []
+           (x:_) -> x : mfix (tail . f)
+
+IO mfix
+mfix = fixIO
+
+Maybe pure
+pure = return
+
+Maybe (<*>)
+(<*>) = ap
+
+Maybe empty
+empty = Nothing
+
+Maybe (<|>)
+Nothing <|> p = p
+Just x  <|> _ = Just x
+
+[] pure
+pure = return
+
+[] (<*>)
+(<*>) = ap
+
+[] empty
+empty = []
+
+[] (<|>)
+(<|>) = (++)
+
+IO pure
+pure = return
+
+IO (<*>)
+(<*>) = ap
+
+(->) pure
+pure = const
+
+(->) (<*>)
+(<*>) f g x = f x (g x)
+
+(,) pure
+pure x = (mempty, x)
+
+(,) (<*>)
+(u, f) <*> (v, x) = (u `mappend` v, f x)
+
+(->) arr
+arr f = f
+
+(->) (>>>)
+f >>> g = g . f
+
+(->) first
+first f = f *** id
+
+(->) second
+second f = id *** f
+
+(->) (***)
+(f *** g) ~(x,y) = (f x, g y)
+

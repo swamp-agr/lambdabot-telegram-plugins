@@ -71,7 +71,11 @@ main = do
   config' <- sequence config
   dir <- P.getDataDir
   exitWith <=< lambdabotMain modulesInfo $
-    [dataDir ==> dir, lbVersion ==> P.version, onStartupCmds ==> ["telegram"]] ++ config'
+    [ dataDir ==> dir
+    , lbVersion ==> P.version
+    , onStartupCmds ==> ["telegram"]
+    , enableInsults ==> False
+    ] ++ config'
 
 
     
