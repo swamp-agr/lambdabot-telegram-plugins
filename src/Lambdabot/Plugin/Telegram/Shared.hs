@@ -17,6 +17,7 @@ data TelegramState = TelegramState
   { tgInput :: TBQueue Msg
   , tgOutput :: TBQueue Msg
   , tgCurrent :: Int
+  , tgBotName :: Text
   }
 
 type Telegram = ModuleT TelegramState LB

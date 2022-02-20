@@ -22,7 +22,8 @@ category:           Development, Web
 extra-source-files: CHANGELOG.md
 
 library
-    exposed-modules:  Lambdabot.Plugin.Telegram
+    exposed-modules:  Lambdabot.Config.Telegram
+                    , Lambdabot.Plugin.Telegram
                     , Lambdabot.Plugin.Telegram.Bot
                     , Lambdabot.Plugin.Telegram.Bot.Generic
                     , Lambdabot.Plugin.Telegram.Callback

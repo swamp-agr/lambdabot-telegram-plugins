@@ -12,6 +12,7 @@ import System.Environment
 import System.Exit
 import System.IO
 
+import Lambdabot.Config.Telegram
 import Modules      (modulesInfo)
 import qualified Paths_lambdabot_telegram_plugins as P
 
@@ -22,13 +23,15 @@ flags =
   , Option "t"  ["trust"] (arg "<package>" trustedPackages strs)  "Trust the specified packages when evaluating code"
   , Option "V"  ["version"] (NoArg version)                       "Print the version of lambdabot"
   , Option "X"  []        (arg "<extension>" languageExts strs)   "Set a GHC language extension for @run"
-  , Option "n"  ["nice"]  (NoArg noinsult)                        "Be nice (disable insulting error messages)"
+  , Option "n"  ["name"]  (arg "<name>" telegramBotName name)     "Set telegram bot name"
   ]
   where 
     arg :: String -> Config t -> (String -> IO t) -> ArgDescr (IO (DSum Config Identity))
     arg descr key fn = ReqArg (fmap (key ==>) . fn) descr
         
     strs = return . (:[])
+
+    name  = return
         
     level str = case reads (map toUpper str) of
       (lv, []):_ -> return lv
@@ -37,8 +40,6 @@ flags =
         , "Valid levels are: " ++ show [DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY]
         ]
         
-    noinsult = return (enableInsults ==> False)
-
 versionString :: String
 versionString = ("lambdabot version " ++ showVersion P.version)
 

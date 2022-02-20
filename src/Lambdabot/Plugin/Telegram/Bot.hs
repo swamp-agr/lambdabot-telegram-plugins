@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Lambdabot.Plugin.Telegram.Bot where
 
@@ -12,6 +13,7 @@ import Data.Char
 import Data.Coerce
 import Data.Maybe
 import qualified Data.Text as Text
+import Data.Text (Text)
 import GHC.Generics
 import Telegram.Bot.API
 import Telegram.Bot.Simple
@@ -109,7 +111,7 @@ telegramLambdaBot tgstate = BotApp
   }
 
 updateToAction :: Model -> Update -> Maybe Action
-updateToAction _ update
+updateToAction TelegramState{..} update
   -- proxy command
   | isCommand "irc" update = SendEverything <$> updateToMsg update
   -- eval commands
@@ -205,11 +207,23 @@ updateToAction _ update
   
   | otherwise = Nothing
   where
-    isCommand cmd = isJust . parseUpdate (Update.command cmd)
+    isCommand cmd = isJust . parseUpdate (commandWithBotName tgBotName cmd)
     dropCommand = Text.dropWhile isSpace . Text.dropWhile (not . isSpace)
     intToText = Text.pack . show . coerce @_ @Integer
     updateToMsg upd =
       Msg <$> (fmap intToText . updateChatId) upd <*> (fmap dropCommand . updateMessageText) upd
+
+-- FIXME: should it be in `telegram-bot-simple`?
+commandWithBotName
+  :: Text -- ^ Bot name.
+  -> Text -- ^ Command name.
+  -> Update.UpdateParser Text
+commandWithBotName botname cmdname = do
+  t <- Update.text
+  case Text.words t of
+    (w:ws)| w `elem` ["/" <> cmdname <> "@" <> botname, "/" <> cmdname]
+      -> pure (Text.unwords ws)
+    _ -> fail "not that command"
 
 handlePluginCommand :: FromCommand cmd => cmd -> Model -> Eff Action Model
 handlePluginCommand cmd model = model <# do
