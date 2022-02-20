@@ -247,7 +247,14 @@ handleModuleAction (TypeModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (UndoModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (UnmtlModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (VersionModule cmd) model = handlePluginCommand cmd model
-handleModuleAction (HelpModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (HelpModule cmd) model = case (msgMessage $ getMessage cmd) of
+  "" -> model <# do
+    pure
+      $ SendBack
+      $ Msg { msgChatId = msgChatId $ getMessage cmd
+            , msgMessage = helpCmd
+            }
+  _  -> handlePluginCommand cmd model
 handleModuleAction (SourceModule cmd) model = handlePluginCommand cmd model
 
 handleAction :: Action -> Model -> Eff Action Model
@@ -284,3 +291,43 @@ runTelegramBot token tgstate = do
   forever $ do
     response <- readOutput tgstate
     botActionFun (SendBack response)
+
+helpCmd :: Text
+helpCmd = "- /irc - Send command to Lambdabot.\n\
+\- /run - run <expr>. You have Haskell, 3 seconds and no IO. Go nuts!\n\
+\- /let - let <x> = <e>. Add a binding.\n\
+\- /define - let <x> = <e>. Add a binding.\n\
+\- /undefine - undefine. Reset evaluator local bindings.\n\
+\- /check - check <expr>. You have QuickCheck and 3 seconds. Prove something.\n\
+\- /djinn - djinn <type>. Generates Haskell code from a type.\n\
+\- /djinnadd - djinn-add <expr>. Define a new function type or type synonym.\n\
+\- /djinndel - djinn-del <ident>. Remove a symbol from the environment.\n\
+\- /djinnenv - Show the current djinn environment.\n\
+\- /djinnnames - Show the current djinn environment, compactly.\n\
+\- /djinnclr - Reset the djinn environment.\n\
+\- /djinnver - Show current djinn version.\n\
+\- /free - free <ident>. Generate theorems for free.\n\
+\- /index - index <ident>. Returns the Haskell modules in which <ident> is defined.\n\
+\- /hoogle - hoogle <expr>. Haskell API Search for either names, or types.\n\
+\- /instances - instances <typeclass>. Fetch the instances of a typeclass.\n\
+\- /instancesimporting - instancesimporting [<module> [<module> [<module...]]] <typeclass>. Fetch the instances of a typeclass, importing specified modules first.\n\
+\- /more - more. Return more output from the bot buffer.\n\
+\- /pl - pointless <expr>. Play with pointfree code.\n\
+\- /pointy - pointful <expr>. Make code pointier.\n\
+\- /repoint - pointful <expr>. Make code pointier.\n\
+\- /unpointless - pointful <expr>. Make code pointier.\n\
+\- /unpl - pointful <expr>. Make code pointier.\n\
+\- /unpf - pointful <expr>. Make code pointier.\n\
+\- /pretty - pretty <expr>. Display haskell code in a pretty-printed manner\n\
+\- /listmodules - listmodules. Show available plugins.\n\
+\- /list - list [module|command]. Show commands for [module] or the module providing [command].\n\
+\- /echo - echo <msg>. echo irc protocol string.\n\
+\- /uptime - uptime. Show uptime.\n\
+\- /type - type <expr>. Return the type of a value.\n\
+\- /kind - kind <type>. Return the kind of a type.\n\
+\- /undo - undo <expr>. Translate do notation to Monad operators.\n\
+\- /do - do <expr>. Translate Monad operators to do notation.\n\
+\- /unmtl - unroll mtl monads.\n\
+\- /version - version/source. Report the version and git repo of this bot\n\
+\- /help - help <command>. Ask for help for <command>. Try 'list' for all commands.\n\
+\- /src - src <id>. Display the implementation of a standard function."
