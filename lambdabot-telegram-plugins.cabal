@@ -36,7 +36,7 @@ library
                     , dependent-map
                     , dependent-sum
                     , edit-distance
-                    , telegram-bot-simple >= 0.4.1
+                    , telegram-bot-simple >= 0.4.3
                     , text
                     , lambdabot-core
                     , lifted-base
