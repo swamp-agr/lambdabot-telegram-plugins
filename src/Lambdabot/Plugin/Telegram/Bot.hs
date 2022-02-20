@@ -255,6 +255,7 @@ handleAction (SendBack msg) model = model <# do
             , sendMessageEntities              = Nothing
             , sendMessageDisableWebPagePreview = Nothing
             , sendMessageDisableNotification   = Nothing
+            , sendMessageProtectContent        = Nothing
             , sendMessageReplyToMessageId      = Nothing
             , sendMessageAllowSendingWithoutReply = Nothing
             , sendMessageReplyMarkup           = Nothing
