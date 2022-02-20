@@ -33,6 +33,18 @@ data ModuleCmd
   | FreeModule FreeCmd
   | HaddockModule HaddockCmd
   | HoogleModule HoogleCmd
+  | InstancesModule InstancesCmd
+  | MoreModule MoreCmd
+  | PlModule PlCmd
+  | PointfulModule PointfulCmd
+  | PrettyModule PrettyCmd
+  | SystemModule SystemCmd
+  | TypeModule TypeCmd
+  | UndoModule UndoCmd
+  | UnmtlModule UnmtlCmd
+  | VersionModule VersionCmd
+  | HelpModule HelpCmd
+  | SourceModule SourceCmd
 
 data EvalCmd = Let Msg | Undefine Msg | Run Msg
   deriving (Generic, FromCommand)
@@ -50,6 +62,42 @@ data HaddockCmd = Index Msg
   deriving (Generic, FromCommand)
 
 data HoogleCmd = Hoogle Msg
+  deriving (Generic, FromCommand)
+
+data InstancesCmd = Instances Msg | InstancesImporting Msg
+  deriving (Generic, FromCommand)
+
+data MoreCmd = More Msg
+  deriving (Generic, FromCommand)
+
+data PlCmd = Pl Msg | PlResume Msg
+  deriving (Generic, FromCommand)
+
+data PointfulCmd = Pointful Msg | Pointy Msg | Repoint Msg | Unpointless Msg | Unpl Msg | Unpf Msg
+  deriving (Generic, FromCommand)
+
+data PrettyCmd = Pretty Msg
+  deriving (Generic, FromCommand)
+
+data SystemCmd = Listchans Msg | Listmodules Msg | Listservers Msg | List Msg | Echo Msg | Uptime Msg
+  deriving (Generic, FromCommand)
+
+data TypeCmd = Type Msg | Kind Msg
+  deriving (Generic, FromCommand)
+
+data UndoCmd = Undo Msg | Do Msg
+  deriving (Generic, FromCommand)
+
+data UnmtlCmd = Unmtl Msg
+  deriving (Generic, FromCommand)
+
+data VersionCmd = Version Msg
+  deriving (Generic, FromCommand)
+
+data HelpCmd = Help Msg
+  deriving (Generic, FromCommand)
+
+data SourceCmd = Src Msg
   deriving (Generic, FromCommand)
 
 telegramLambdaBot :: TelegramState -> BotApp Model Action
@@ -92,6 +140,69 @@ updateToAction _ update
   -- hoogle
   | isCommand "hoogle" update
   = SendModule <$> (HoogleModule <$> (Hoogle <$> updateToMsg update))
+  -- instances
+  | isCommand "instances" update
+  = SendModule <$> (InstancesModule <$> (Instances <$> updateToMsg update))
+  | isCommand "instancesimporting" update
+  = SendModule <$> (InstancesModule <$> (InstancesImporting <$> updateToMsg update))
+  -- more
+  | isCommand "more" update
+  = SendModule <$> (MoreModule <$> (More <$> updateToMsg update))
+  -- pl
+  | isCommand "pl" update
+  = SendModule <$> (PlModule <$> (Pl <$> updateToMsg update))
+  | isCommand "plresume" update
+  = SendModule <$> (PlModule <$> (PlResume <$> updateToMsg update))
+  -- pointful
+  | isCommand "pointful" update
+  = SendModule <$> (PointfulModule <$> (Pointful <$> updateToMsg update))
+  | isCommand "pointy" update
+  = SendModule <$> (PointfulModule <$> (Pointy <$> updateToMsg update))
+  | isCommand "repoint" update
+  = SendModule <$> (PointfulModule <$> (Repoint <$> updateToMsg update))
+  | isCommand "unpointless" update
+  = SendModule <$> (PointfulModule <$> (Unpointless <$> updateToMsg update))
+  | isCommand "unpl" update
+  = SendModule <$> (PointfulModule <$> (Unpl <$> updateToMsg update))
+  | isCommand "unpf" update
+  = SendModule <$> (PointfulModule <$> (Unpf <$> updateToMsg update))
+  -- pretty
+  | isCommand "pretty" update
+  = SendModule <$> (PrettyModule <$> (Pretty <$> updateToMsg update))
+  -- system
+  -- FIXME: decide about `listchans`, `listservers`
+  | isCommand "listmodules" update
+  = SendModule <$> (SystemModule <$> (Listmodules <$> updateToMsg update))
+  | isCommand "list" update
+  = SendModule <$> (SystemModule <$> (List <$> updateToMsg update))
+  | isCommand "echo" update
+  = SendModule <$> (SystemModule <$> (Echo <$> updateToMsg update))
+  | isCommand "uptime" update
+  = SendModule <$> (SystemModule <$> (Uptime <$> updateToMsg update))
+  -- type
+  | isCommand "type" update
+  = SendModule <$> (TypeModule <$> (Type <$> updateToMsg update))
+  | isCommand "kind" update
+  = SendModule <$> (TypeModule <$> (Kind <$> updateToMsg update))
+  -- undo
+  | isCommand "undo" update
+  = SendModule <$> (UndoModule <$> (Undo <$> updateToMsg update))
+  | isCommand "do" update
+  = SendModule <$> (UndoModule <$> (Do <$> updateToMsg update))
+  -- unmtl
+  | isCommand "unmtl" update
+  = SendModule <$> (UnmtlModule <$> (Unmtl <$> updateToMsg update))
+  -- version
+  | isCommand "version" update
+  = SendModule <$> (VersionModule <$> (Version <$> updateToMsg update))
+  -- help
+  | isCommand "help" update
+  = SendModule <$> (HelpModule <$> (Help <$> updateToMsg update))
+  -- source
+  -- FIXME: src command is not working properly
+  | isCommand "src" update
+  = SendModule <$> (SourceModule <$> (Src <$> updateToMsg update))
+  
   | otherwise = Nothing
   where
     isCommand cmd = isJust . parseUpdate (Update.command cmd)
@@ -112,6 +223,18 @@ handleModuleAction (DjinnModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (FreeModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (HaddockModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (HoogleModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (InstancesModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (MoreModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (PlModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (PointfulModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (PrettyModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (SystemModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (TypeModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (UndoModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (UnmtlModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (VersionModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (HelpModule cmd) model = handlePluginCommand cmd model
+handleModuleAction (SourceModule cmd) model = handlePluginCommand cmd model
 
 handleAction :: Action -> Model -> Eff Action Model
 handleAction (SendEverything msg) model = model <# do
