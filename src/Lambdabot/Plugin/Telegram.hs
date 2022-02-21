@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE StrictData #-}
 module Lambdabot.Plugin.Telegram where
 
@@ -13,6 +14,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as Text
+import Data.Version
 import System.Timeout.Lifted
 import Telegram.Bot.Simple
 
@@ -31,6 +33,9 @@ import Lambdabot.Plugin.Telegram.Message
 import Lambdabot.Plugin.Telegram.Shared
 
 -- * Lambdabot state
+
+lambdabotVersion :: String
+lambdabotVersion = VERSION_lambdabot_core
 
 telegramPlugins :: [String]
 telegramPlugins = ["telegram"]
@@ -64,6 +69,20 @@ telegramPlugin = newModule
             _ <- fork (telegramLoop histFile `finally` unlockRC)
             ldebug "telegram loop started"
             return ()
+        }
+    , (command "tgversion")
+        { help = say $
+            "version/source. Report version(s) and git repo of this bot."
+        , process = const $ do
+            ver <- getConfig telegramLambdabotVersion
+            say $ unlines $
+              [ "telegram-lambdabot v."
+                <> showVersion ver
+                <> ". git clone https://github.com/swamp-agr/lambdabot-telegram-plugins.git"
+              , "lambdabot-core v."
+                <> lambdabotVersion
+                <> ". git clone https://github.com/lambdabot/lambdabot.git"
+              ]
         }
     ]
   }

@@ -72,7 +72,7 @@ main = do
   dir <- P.getDataDir
   exitWith <=< lambdabotMain modulesInfo $
     [ dataDir ==> dir
-    , lbVersion ==> P.version
+    , telegramLambdabotVersion ==> P.version
     , onStartupCmds ==> ["telegram"]
     , enableInsults ==> False
     ] ++ config'

@@ -93,7 +93,7 @@ data UndoCmd = Undo Msg | Do Msg
 data UnmtlCmd = Unmtl Msg
   deriving (Generic, FromCommand)
 
-data VersionCmd = Version Msg
+data VersionCmd = Tgversion Msg
   deriving (Generic, FromCommand)
 
 data HelpCmd = Help Msg
@@ -196,7 +196,7 @@ updateToAction TelegramState{..} update
   = SendModule <$> (UnmtlModule <$> (Unmtl <$> updateToMsg update))
   -- version
   | isCommand "version" update
-  = SendModule <$> (VersionModule <$> (Version <$> updateToMsg update))
+  = SendModule <$> (VersionModule <$> (Tgversion <$> updateToMsg update))
   -- help
   | isCommand "help" update
   = SendModule <$> (HelpModule <$> (Help <$> updateToMsg update))
