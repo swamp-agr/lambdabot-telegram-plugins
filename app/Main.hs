@@ -6,7 +6,6 @@ import Control.Monad.Identity
 import Data.Char
 import Data.Version
 import Lambdabot.Main
-import Lambdabot.Plugin.Haskell
 import System.Console.GetOpt
 import System.Environment
 import System.Exit
@@ -37,7 +36,7 @@ flags =
       (lv, []):_ -> return lv
       _          -> usage
         [ "Unknown log level."
-        , "Valid levels are: " ++ show [DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY]
+        , "Valid levels are: " ++ show [minBound .. maxBound :: Priority]
         ]
         
 versionString :: String
