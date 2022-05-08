@@ -98,7 +98,7 @@ doPublicMsg commands msg target s r
 doMsg :: IrcMessage -> String -> String -> Nick -> Telegram ()
 doMsg msg cmd rest towhere = do
     ldebug $ "doMsg : nick : " <> fmtNick "" towhere
-    let ircmsg = tgIrcPrivMsg (getTgChatId msg) . Text.pack
+    let ircmsg = tgIrcPrivMsg (getTgChatId msg) (getTgMsgId msg) . Text.pack
     allcmds <- lift (gets (Map.keys . ircCommands))
     let ms      = filter (isPrefixOf cmd) allcmds
     e <- getConfig editDistanceLimit
@@ -114,7 +114,7 @@ doMsg msg cmd rest towhere = do
 docmd :: IrcMessage -> Nick -> [Char] -> String -> Telegram ()
 docmd msg towhere rest cmd' = lb $ 
     withCommand cmd'   -- Important.
-        (tgIrcPrivMsg (getTgChatId msg)  "Unknown command, try @list")
+        (tgIrcPrivMsg (getTgChatId msg) (getTgMsgId msg)  "Unknown command, try @list")
         (\theCmd -> do
             hasPrivs <- lb (checkPrivs msg)
             -- TODO: handle disabled commands earlier
@@ -134,7 +134,7 @@ docmd msg towhere rest cmd' = lb $
                     `E.catch` \exc@SomeException{} ->
                         return ["Plugin `Telegram` failed with: " ++ show exc]
             
-            lift $ mapM_ (tgIrcPrivMsg (getTgChatId msg) . Text.pack . expandTab 8) response
+            lift $ mapM_ (tgIrcPrivMsg (getTgChatId msg) (getTgMsgId msg) . Text.pack . expandTab 8) response
         )
 
 

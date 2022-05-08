@@ -132,8 +132,8 @@ newTelegramState = do
   
     return TelegramState {..}
 
-feed :: Text -> Text -> Telegram ()
-feed chatId msg = do
+feed :: Text -> Text -> Text -> Telegram ()
+feed chatId msgId msg = do
     cmdPrefix <- fmap head (getConfig commandPrefixes)
     let msg' = case Text.unpack msg of
             '>':xs -> cmdPrefix ++ "run " ++ xs
@@ -141,7 +141,7 @@ feed chatId msg = do
             _      -> cmdPrefix ++ dropWhile (== ' ') (Text.unpack msg)
     -- note that `msg'` is unicode, but lambdabot wants utf-8 lists of bytes
     lb . void . timeout (15 * 1000 * 1000) . received $
-      makeIrcMessage chatId (Text.pack $ encodeString msg')
+      makeIrcMessage chatId msgId (Text.pack $ encodeString msg')
 
 handleMsg :: IrcMessage -> Telegram ()
 handleMsg msg = do
@@ -152,6 +152,7 @@ handleMsg msg = do
   tg <- readMS
   let out = Msg
         { msgChatId = getTgChatId msg
+        , msgMsgId = getTgMsgId msg
         , msgMessage = (Text.pack . decodeString) str
         }
   ldebug $ "handleMsg : irc : " <> (show msg)
@@ -180,7 +181,7 @@ telegramLoop fp = do
   let s' = Text.dropWhile isSpace (msgMessage msg)
   when (not (Text.null s')) $ do
     io $ appendFile fp $ Text.unpack (msgMessage msg) <> "\n"
-    feed (msgChatId msg) s'
+    feed (msgChatId msg) (msgMsgId msg) s'
   continue <- lift $ gets (Map.member "telegramrc" . ircPersists)
   when continue $ telegramLoop fp
 

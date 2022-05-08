@@ -8,8 +8,9 @@ import Lambdabot.Module (ModuleT)
 import Lambdabot.Monad (LB)
 
 data Msg = Msg
-  { msgChatId :: Text
-  , msgMessage :: Text
+  { msgChatId :: !Text
+  , msgMsgId :: !Text
+  , msgMessage :: !Text
   }
   deriving Show
 

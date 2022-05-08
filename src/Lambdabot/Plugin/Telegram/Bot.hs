@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -17,7 +18,7 @@ import Data.Text (Text)
 import GHC.Generics
 import Telegram.Bot.API
 import Telegram.Bot.Simple
-import Telegram.Bot.Simple.UpdateParser (parseUpdate, updateMessageText)
+import Telegram.Bot.Simple.UpdateParser (parseUpdate)
 import qualified Telegram.Bot.Simple.UpdateParser as Update
 import Text.Read (readMaybe)
 
@@ -197,14 +198,16 @@ updateToAction TelegramState{..} update
   -- FIXME: src command is not working properly
   | isCommand "src" update
   = SendModule <$> (SourceModule <$> (Src <$> updateToMsg update))
-  
   | otherwise = Nothing
   where
     isCommand cmd = isJust . parseUpdate (commandWithBotName tgBotName cmd)
     dropCommand = Text.dropWhile isSpace . Text.dropWhile (not . isSpace)
+    intToText :: Coercible a Integer => a -> Text
     intToText = Text.pack . show . coerce @_ @Integer
     updateToMsg upd =
-      Msg <$> (fmap intToText . updateChatId) upd <*> (fmap dropCommand . updateMessageText) upd
+      Msg <$> (fmap intToText . updateChatId) upd
+          <*> (fmap (intToText . messageMessageId) . extractUpdateMessage) upd
+          <*> (fmap dropCommand . join . fmap messageText . extractUpdateMessage) upd
 
 -- FIXME: should it be in `telegram-bot-simple`?
 commandWithBotName
@@ -212,11 +215,14 @@ commandWithBotName
   -> Text -- ^ Command name.
   -> Update.UpdateParser Text
 commandWithBotName botname cmdname = do
-  t <- Update.text
+  t <- textFromAnyMessageType
   case Text.words t of
     (w:ws)| w `elem` ["/" <> cmdname <> "@" <> botname, "/" <> cmdname]
       -> pure (Text.unwords ws)
     _ -> fail "not that command"
+
+textFromAnyMessageType :: Update.UpdateParser Text
+textFromAnyMessageType = Update.UpdateParser (extractUpdateMessage >=> messageText)
 
 handlePluginCommand :: FromCommand cmd => cmd -> Model -> Eff Action Model
 handlePluginCommand cmd model = model <# do
@@ -244,6 +250,7 @@ handleModuleAction (HelpModule cmd) model = case (msgMessage $ getMessage cmd) o
     pure
       $ SendBack
       $ Msg { msgChatId = msgChatId $ getMessage cmd
+            , msgMsgId = msgMsgId $ getMessage cmd
             , msgMessage = helpCmd
             }
   _  -> handlePluginCommand cmd model
@@ -255,9 +262,11 @@ handleAction (SendEverything msg) model = model <# do
   return ()
 handleAction (SendModule moduleCmd) model = handleModuleAction moduleCmd model
 handleAction (SendBack msg) model = model <# do
-  let Msg chatIdText response = msg
+  let Msg chatIdText msgIdText response = msg
       parseChatId = fmap ChatId . readMaybe . Text.unpack
+      parseMsgId  = fmap MessageId . readMaybe . Text.unpack
       mchatId = parseChatId chatIdText
+      mreplyMessageId = parseMsgId msgIdText
   case mchatId of
     Nothing -> pure ()
     Just tgchatId -> do
@@ -269,7 +278,7 @@ handleAction (SendBack msg) model = model <# do
             , sendMessageDisableWebPagePreview = Nothing
             , sendMessageDisableNotification   = Nothing
             , sendMessageProtectContent        = Nothing
-            , sendMessageReplyToMessageId      = Nothing
+            , sendMessageReplyToMessageId      = mreplyMessageId
             , sendMessageAllowSendingWithoutReply = Nothing
             , sendMessageReplyMarkup           = Nothing
             }
