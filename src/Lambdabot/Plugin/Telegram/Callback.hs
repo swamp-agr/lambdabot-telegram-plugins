@@ -97,7 +97,7 @@ doPublicMsg commands msg target s r
 --
 doMsg :: IrcMessage -> String -> String -> Nick -> Telegram ()
 doMsg msg cmd rest towhere = do
-    ldebug $ "doMsg : nick : " <> fmtNick "" towhere
+    ldebug $ "doMsg : nick : " <> fmtNick "" towhere <> " : cmd : " <> cmd
     let ircmsg = tgIrcPrivMsg (getTgChatId msg) (getTgMsgId msg) . Text.pack
     allcmds <- lift (gets (Map.keys . ircCommands))
     let ms      = filter (isPrefixOf cmd) allcmds
@@ -126,7 +126,9 @@ docmd msg towhere rest cmd' = lb $
             -- unfortunately we have to pre-process command here to add some context,
             -- since the 'process' accepts a 'String' but we want more info specified
             -- (e.g. 'ChatId') to create multiple sandboxes
-            let new = Text.unpack (getTgChatId msg) <> " " <> rest
+            let new = if cmd' `elem` ["@run", "@define", "@undefine", "@let"]
+                  then Text.unpack (getTgChatId msg) <> " " <> rest
+                  else rest
 
             response <- if not ok
                 then return ["Not enough privileges"]
