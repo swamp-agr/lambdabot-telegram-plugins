@@ -18,6 +18,7 @@ defaultExts :: [String]
 defaultExts =
     [ "ImplicitPrelude" -- workaround for bug in hint package
     , "ExtendedDefaultRules"
+    , "TypeApplications"
     ]
 
 configWithMerge [| (++) |] "languageExts"   [t| [String] |] [| defaultExts |]
