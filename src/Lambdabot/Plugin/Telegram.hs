@@ -17,6 +17,7 @@ import Data.Ord
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as Text
+import qualified Data.Text.Lazy as TL
 import Data.Version
 import qualified Language.Haskell.Exts.Simple as Hs
 import System.Directory
@@ -24,6 +25,7 @@ import System.Exit
 import System.Process
 import System.Timeout.Lifted
 import Telegram.Bot.Simple
+import Text.Pretty.Simple (pStringNoColor)
 
 import Lambdabot.Command
 import Lambdabot.Config.Telegram
@@ -153,7 +155,7 @@ handleMsg msg = do
   let out = Msg
         { msgChatId = getTgChatId msg
         , msgMsgId = getTgMsgId msg
-        , msgMessage = (Text.pack . decodeString) str
+        , msgMessage = (TL.toStrict . pStringNoColor . decodeString) str
         }
   ldebug $ "handleMsg : irc : " <> (show msg)
   ldebug $ "handleMsg : out : " <> (show out)
