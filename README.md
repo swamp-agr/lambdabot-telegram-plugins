@@ -92,7 +92,6 @@ Following commands are available:
 - `/hoogle` - hoogle <expr>. Haskell API Search for either names, or types.
 - `/instances` - instances <typeclass>. Fetch the instances of a typeclass.
 - `/instancesimporting` - instancesimporting [<module> [<module> [<module...]]] <typeclass>. Fetch the instances of a typeclass, importing specified modules first.
-- `/more` - more. Return more output from the bot buffer.
 - `/pl` - pointless <expr>. Play with pointfree code.
 - `/pointy` - pointful <expr>. Make code pointier.
 - `/repoint` - pointful <expr>. Make code pointier.
