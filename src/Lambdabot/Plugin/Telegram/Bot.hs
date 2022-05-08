@@ -294,12 +294,24 @@ runTelegramBot token tgstate = do
     botActionFun (SendBack response)
 
 helpCmd :: Text
-helpCmd = "- /irc - Send command to Lambdabot.\n\
+helpCmd = "Lambdabot for Telegram provides following plugins:\n\
+\\n\
+\telegram check djinn free haddock hoogle instances pl pointful pretty source system type undo unmtl\n\
+\\n\
+\telegram plugin has following commands:\n\
+\\n\
+\- /version - version/source. Report the version and git repo of this bot\n\
 \- /run - run <expr>. You have Haskell, 3 seconds and no IO. Go nuts!\n\
 \- /let - let <x> = <e>. Add a binding.\n\
 \- /define - let <x> = <e>. Add a binding.\n\
 \- /undefine - undefine. Reset evaluator local bindings.\n\
+\\n\
+\check plugin has following command:\n\
+\\n\
 \- /check - check <expr>. You have QuickCheck and 3 seconds. Prove something.\n\
+\\n\
+\djinn plugin has following commands:\n\
+\\n\
 \- /djinn - djinn <type>. Generates Haskell code from a type.\n\
 \- /djinnadd - djinn-add <expr>. Define a new function type or type synonym.\n\
 \- /djinndel - djinn-del <ident>. Remove a symbol from the environment.\n\
@@ -307,28 +319,60 @@ helpCmd = "- /irc - Send command to Lambdabot.\n\
 \- /djinnnames - Show the current djinn environment, compactly.\n\
 \- /djinnclr - Reset the djinn environment.\n\
 \- /djinnver - Show current djinn version.\n\
+\\n\
+\free plugin has following command:\n\
+\\n\
 \- /free - free <ident>. Generate theorems for free.\n\
+\\n\
+\haddock plugin has following command:\n\
+\\n\
 \- /index - index <ident>. Returns the Haskell modules in which <ident> is defined.\n\
+\\n\
+\hoogle plugin has following command:\n\
+\\n\
 \- /hoogle - hoogle <expr>. Haskell API Search for either names, or types.\n\
+\\n\
+\instances plugin has following commands:\n\
+\\n\
 \- /instances - instances <typeclass>. Fetch the instances of a typeclass.\n\
 \- /instancesimporting - instancesimporting [<module> [<module> [<module...]]] <typeclass>. Fetch the instances of a typeclass, importing specified modules first.\n\
-\- /more - more. Return more output from the bot buffer.\n\
+\\n\
+\pl plugin has following command:\n\
+\\n\
 \- /pl - pointless <expr>. Play with pointfree code.\n\
+\\n\
+\pointful plugin has following commands:\n\
+\\n\
 \- /pointy - pointful <expr>. Make code pointier.\n\
 \- /repoint - pointful <expr>. Make code pointier.\n\
 \- /unpointless - pointful <expr>. Make code pointier.\n\
 \- /unpl - pointful <expr>. Make code pointier.\n\
 \- /unpf - pointful <expr>. Make code pointier.\n\
+\\n\
+\pretty plugin has following commands:\n\
+\\n\
 \- /pretty - pretty <expr>. Display haskell code in a pretty-printed manner\n\
-\- /listmodules - listmodules. Show available plugins.\n\
-\- /list - list [module|command]. Show commands for [module] or the module providing [command].\n\
-\- /echo - echo <msg>. echo irc protocol string.\n\
-\- /uptime - uptime. Show uptime.\n\
+\\n\
+\type plugin has following commands:\n\
+\\n\
 \- /type - type <expr>. Return the type of a value.\n\
 \- /kind - kind <type>. Return the kind of a type.\n\
+\\n\
+\source plugin has following commands:\n\
+\- /src - src <id>. Display the implementation of a standard function.\n\
+\\n\
+\undo plugin has following commands:\n\
+\\n\
 \- /undo - undo <expr>. Translate do notation to Monad operators.\n\
 \- /do - do <expr>. Translate Monad operators to do notation.\n\
+\\n\
+\unmtl has following commands:\n\
+\\n\
 \- /unmtl - unroll mtl monads.\n\
+\\n\
+\Other commands:\n\
+\- /help - shows this help.\n\
 \- /version - version/source. Report the version and git repo of this bot\n\
-\- /help - help <command>. Ask for help for <command>. Try 'list' for all commands.\n\
-\- /src - src <id>. Display the implementation of a standard function."
+\\n\
+\All plugins are independent from each other, i.e. have their own state or use different programs under the hood."
+
