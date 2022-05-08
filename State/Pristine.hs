@@ -1,5 +1,4 @@
 {-# LANGUAGE Safe #-}
-{-# OPTIONS_GHC -interactive-print=Text.Pretty.Simple.pPrint #-}
 {-# LANGUAGE ConstrainedClassMethods #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFoldable #-}

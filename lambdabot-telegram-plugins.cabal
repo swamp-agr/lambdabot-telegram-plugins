@@ -45,6 +45,7 @@ library
                     , lifted-base
                     , monad-control
                     , mtl
+                    , pretty-simple
                     , process
                     , regex-tdfa
                     , split
