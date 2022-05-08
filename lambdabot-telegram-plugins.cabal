@@ -36,13 +36,16 @@ library
                     , containers
                     , dependent-map
                     , dependent-sum
+                    , directory
                     , edit-distance
+                    , haskell-src-exts-simple
                     , telegram-bot-simple >= 0.4.3
                     , text
                     , lambdabot-core
                     , lifted-base
                     , monad-control
                     , mtl
+                    , process
                     , regex-tdfa
                     , split
                     , stm

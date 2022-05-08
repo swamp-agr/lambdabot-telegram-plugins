@@ -10,4 +10,4 @@ import Lambdabot.Plugin.Haskell
 import Lambdabot.Plugin.Telegram
 
 modulesInfo :: Modules
-modulesInfo = $(modules $ corePlugins ++ haskellPlugins ++ telegramPlugins)
+modulesInfo = $(modules $ corePlugins ++ customHaskellPlugins ++ telegramPlugins)

@@ -123,11 +123,16 @@ docmd msg towhere rest cmd' = lb $
             disabled <- elem cmd' <$> getConfig disabledCommands
             let ok = not disabled && (not (privileged theCmd) || hasPrivs)
 
+            -- unfortunately we have to pre-process command here to add some context,
+            -- since the 'process' accepts a 'String' but we want more info specified
+            -- (e.g. 'ChatId') to create multiple sandboxes
+            let new = Text.unpack (getTgChatId msg) <> " " <> rest
+
             response <- if not ok
                 then return ["Not enough privileges"]
-                else runCommand theCmd msg towhere cmd' rest
+                else runCommand theCmd msg towhere cmd' new
                     `E.catch` \exc@SomeException{} ->
-                        return ["Plugin `Telegram' failed with: " ++ show exc]
+                        return ["Plugin `Telegram` failed with: " ++ show exc]
             
             lift $ mapM_ (tgIrcPrivMsg (getTgChatId msg) . Text.pack . expandTab 8) response
         )
