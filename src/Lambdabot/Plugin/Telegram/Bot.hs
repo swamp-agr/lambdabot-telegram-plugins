@@ -36,7 +36,6 @@ data ModuleCmd
   | HaddockModule HaddockCmd
   | HoogleModule HoogleCmd
   | InstancesModule InstancesCmd
-  | MoreModule MoreCmd
   | PlModule PlCmd
   | PointfulModule PointfulCmd
   | PrettyModule PrettyCmd
@@ -67,9 +66,6 @@ data HoogleCmd = Hoogle Msg
   deriving (Generic, FromCommand)
 
 data InstancesCmd = Instances Msg | InstancesImporting Msg
-  deriving (Generic, FromCommand)
-
-data MoreCmd = More Msg
   deriving (Generic, FromCommand)
 
 data PlCmd = Pl Msg | PlResume Msg
@@ -147,9 +143,6 @@ updateToAction TelegramState{..} update
   = SendModule <$> (InstancesModule <$> (Instances <$> updateToMsg update))
   | isCommand "instancesimporting" update
   = SendModule <$> (InstancesModule <$> (InstancesImporting <$> updateToMsg update))
-  -- more
-  | isCommand "more" update
-  = SendModule <$> (MoreModule <$> (More <$> updateToMsg update))
   -- pl
   | isCommand "pl" update
   = SendModule <$> (PlModule <$> (Pl <$> updateToMsg update))
@@ -238,7 +231,6 @@ handleModuleAction (FreeModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (HaddockModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (HoogleModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (InstancesModule cmd) model = handlePluginCommand cmd model
-handleModuleAction (MoreModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (PlModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (PointfulModule cmd) model = handlePluginCommand cmd model
 handleModuleAction (PrettyModule cmd) model = handlePluginCommand cmd model
