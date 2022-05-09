@@ -383,7 +383,7 @@ renderChatType Private = "P"
 
 readChatInfoFromSource :: String -> ChatInfo
 readChatInfoFromSource str =
-  let prefix = takeWhile (\ch -> isDigit ch || (ch == '-')) str
+  let prefix = takeWhile (/= '|') str
       mode = case find (== '-') str of
         Nothing -> Public
         Just _  -> Private
@@ -391,7 +391,7 @@ readChatInfoFromSource str =
   in ChatInfo (Text.pack onlyChatId) mode
 
 dropChatInfoFromSource :: ChatInfo -> String -> String
-dropChatInfoFromSource ChatInfo{..} str = dropWhile isSpace $ drop prefixLength str
+dropChatInfoFromSource ChatInfo{..} str = drop 1 . dropWhile (/= '|') $ drop prefixLength str
   where
     prefixLength = Text.length chatInfoChatId + m
     m = case chatInfoType of

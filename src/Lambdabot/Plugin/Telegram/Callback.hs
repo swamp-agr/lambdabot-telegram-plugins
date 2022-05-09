@@ -126,8 +126,9 @@ docmd msg towhere rest cmd' = lb $
             -- unfortunately we have to pre-process command here to add some context,
             -- since the 'process' accepts a 'String' but we want more info specified
             -- (e.g. 'ChatId') to create multiple sandboxes
-            let new = if cmd' `elem` ["@run", "@define", "@undefine", "@let"]
-                  then Text.unpack (getTgChatId msg) <> " " <> rest
+            debugM $ "docmd : nick : " <> fmtNick "" towhere <> " : cmd : " <> cmd' <> " : input : " <> rest
+            let new = if cmd' `elem` ["@run", "@define", "@undefine", "@let", "run", "define", "undefine", "let"]
+                  then Text.unpack (getTgChatId msg) <> "|" <> rest
                   else rest
 
             response <- if not ok
