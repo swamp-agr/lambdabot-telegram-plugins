@@ -272,8 +272,8 @@ handleAction (SendBack msg) model = model <# do
     Just tgchatId -> do
       let req = SendMessageRequest
             { sendMessageChatId                = SomeChatId tgchatId
-            , sendMessageText                  = response
-            , sendMessageParseMode             = Nothing
+            , sendMessageText                  = "```\n" <> response <> "\n```\n"
+            , sendMessageParseMode             = Just MarkdownV2
             , sendMessageEntities              = Nothing
             , sendMessageDisableWebPagePreview = Nothing
             , sendMessageDisableNotification   = Nothing
