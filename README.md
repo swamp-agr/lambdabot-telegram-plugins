@@ -114,6 +114,9 @@ Following commands are available:
 
 ## Available instance(s)
 
+- Production: [@LaTelegrambdaBot](https://t.me/LaTelegrambdaBot)
+- Staging (offline): [@LaTelagrambdaBot](https://t.me/LaTelagrambdaBot)
+
 ## Acknowledgements
 
 - James Cook
