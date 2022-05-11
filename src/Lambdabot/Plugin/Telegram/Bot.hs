@@ -18,8 +18,7 @@ import Data.Text (Text)
 import GHC.Generics
 import Telegram.Bot.API
 import Telegram.Bot.Simple
-import Telegram.Bot.Simple.UpdateParser (parseUpdate)
-import qualified Telegram.Bot.Simple.UpdateParser as Update
+import Telegram.Bot.Simple.UpdateParser
 import Text.Read (readMaybe)
 
 import Lambdabot.Plugin.Telegram.Shared
@@ -207,22 +206,7 @@ updateToAction TelegramState{..} update
     updateToMsg upd =
       Msg <$> (fmap intToText . updateChatId) upd
           <*> (fmap (intToText . messageMessageId) . extractUpdateMessage) upd
-          <*> (fmap dropCommand . join . fmap messageText . extractUpdateMessage) upd
-
--- FIXME: should it be in `telegram-bot-simple`?
-commandWithBotName
-  :: Text -- ^ Bot name.
-  -> Text -- ^ Command name.
-  -> Update.UpdateParser Text
-commandWithBotName botname cmdname = do
-  t <- textFromAnyMessageType
-  case Text.words t of
-    (w:ws)| w `elem` ["/" <> cmdname <> "@" <> botname, "/" <> cmdname]
-      -> pure (Text.unwords ws)
-    _ -> fail "not that command"
-
-textFromAnyMessageType :: Update.UpdateParser Text
-textFromAnyMessageType = Update.UpdateParser (extractUpdateMessage >=> messageText)
+          <*> (fmap dropCommand . updateMessageText) upd
 
 handlePluginCommand :: FromCommand cmd => cmd -> Model -> Eff Action Model
 handlePluginCommand cmd model = model <# do
