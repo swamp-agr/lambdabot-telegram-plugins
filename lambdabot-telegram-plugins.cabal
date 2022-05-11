@@ -39,7 +39,7 @@ library
                     , directory
                     , edit-distance
                     , haskell-src-exts-simple
-                    , telegram-bot-simple >= 0.4.3
+                    , telegram-bot-simple >= 0.5.2
                     , text
                     , lambdabot-core
                     , lifted-base
