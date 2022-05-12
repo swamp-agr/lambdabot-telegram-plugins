@@ -15,6 +15,16 @@ version:            0.2.0
 license:            GPL-2.0-or-later
 author:             Andrey Prokopenko
 maintainer:         persiantiger@yandex.ru
+synopsis:           Lambdabot for Telegram
+description:        Lambdabot is an IRC bot written over several years by
+                    those on the #haskell IRC channel.
+                    .
+                    It operates as a command line tool, embedded in an editor,
+                    embedded in GHCi, via internet relay chat and on the web.
+                    .
+                    Telegram bot provided via telegram-bot-simple package.
+                    .
+                    This package is a combination of both Lambdabot and Telegram bot.
 
 -- A copyright notice.
 -- copyright:
@@ -52,6 +62,10 @@ library
                     , stm
                     , transformers
                     , utf8-string
+    autogen-modules:
+        Paths_lambdabot_telegram_plugins
+    other-modules:
+        Paths_lambdabot_telegram_plugins
 
 executable telegram-lambdabot
     main-is:          Main.hs
