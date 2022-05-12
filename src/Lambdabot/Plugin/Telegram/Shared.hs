@@ -7,6 +7,7 @@ import Data.Text (Text)
 import Lambdabot.Module (ModuleT)
 import Lambdabot.Monad (LB)
 
+-- | Transport type used to communicate between Telegram and Lambdabot.
 data Msg = Msg
   { msgChatId :: !Text
   , msgMsgId :: !Text
@@ -14,6 +15,7 @@ data Msg = Msg
   }
   deriving Show
 
+-- | Shared state between Lambdabot and Telegram.
 data TelegramState = TelegramState
   { tgInput :: TBQueue Msg
   , tgOutput :: TBQueue Msg
@@ -21,6 +23,7 @@ data TelegramState = TelegramState
   , tgBotName :: Text
   }
 
+-- | Lambdabot Monad with embedded Telegram State.
 type Telegram = ModuleT TelegramState LB
 
 -- | Read input message from Telegram bot on Lambdabot side.

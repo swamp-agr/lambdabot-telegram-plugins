@@ -24,10 +24,16 @@ import Text.Read (readMaybe)
 import Lambdabot.Plugin.Telegram.Shared
 import Lambdabot.Plugin.Telegram.Bot.Generic
 
+-- | Telegram Model.
 type Model = TelegramState
 
+-- | Supported actions:
+-- * send everything obtained from user to lambdabot ("proxy" command).
+-- * send exact module command to lambdabot.
+-- * send response back to user.
 data Action = SendEverything Msg | SendModule ModuleCmd | SendBack Msg
 
+-- | Supported modules.
 data ModuleCmd
   = EvalModule EvalCmd
   | CheckModule CheckCmd
@@ -47,57 +53,75 @@ data ModuleCmd
   | HelpModule HelpCmd
   | SourceModule SourceCmd
 
+-- | Supported commands from @eval@ plugin.
 data EvalCmd = Let Msg | Undefine Msg | Run Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @check@ plugin.
 data CheckCmd = Check Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @djinn@ plugin.
 data DjinnCmd = Djinn Msg | DjinnAdd Msg | DjinnDel Msg | DjinnEnv Msg | DjinnNames Msg | DjinnClr Msg | DjinnVer Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @free@ plugin.
 data FreeCmd = Free Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @haddock@ plugin.
 data HaddockCmd = Index Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @hoogle@ plugin.
 data HoogleCmd = Hoogle Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @instances@ plugin.
 data InstancesCmd = Instances Msg | InstancesImporting Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @pl@ plugin.
 data PlCmd = Pl Msg | PlResume Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @pointful@ plugin.
 data PointfulCmd = Pointful Msg | Pointy Msg | Repoint Msg | Unpointless Msg | Unpl Msg | Unpf Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @pretty@ plugin.
 data PrettyCmd = Pretty Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @system@ plugin.
 data SystemCmd = Listchans Msg | Listmodules Msg | Listservers Msg | List Msg | Echo Msg | Uptime Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @type@ plugin.
 data TypeCmd = Type Msg | Kind Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @undo@ plugin.
 data UndoCmd = Undo Msg | Do Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @unmtl@ plugin.
 data UnmtlCmd = Unmtl Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @version@ plugin.
 data VersionCmd = Tgversion Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @help@ plugin.
 data HelpCmd = Help Msg
   deriving (Generic, FromCommand)
 
+-- | Supported commands from @source@ plugin.
 data SourceCmd = Src Msg
   deriving (Generic, FromCommand)
 
+-- | The bot.
 telegramLambdaBot :: TelegramState -> BotApp Model Action
 telegramLambdaBot tgstate = BotApp
   { botInitialModel = tgstate
@@ -106,6 +130,7 @@ telegramLambdaBot tgstate = BotApp
   , botJobs = []
   }
 
+-- | How to handle updates from Telegram.
 updateToAction :: Model -> Update -> Maybe Action
 updateToAction TelegramState{..} update
   -- proxy command
@@ -194,7 +219,6 @@ updateToAction TelegramState{..} update
   | isCommand "help" update
   = SendModule <$> (HelpModule <$> (Help <$> updateToMsg update))
   -- source
-  -- FIXME: src command is not working properly
   | isCommand "src" update
   = SendModule <$> (SourceModule <$> (Src <$> updateToMsg update))
   | otherwise = Nothing
@@ -208,11 +232,13 @@ updateToAction TelegramState{..} update
           <*> (fmap (intToText . messageMessageId) . extractUpdateMessage) upd
           <*> (fmap dropCommand . updateMessageText) upd
 
+-- | Extract 'Msg' from incoming command and send to Lambdabot.
 handlePluginCommand :: FromCommand cmd => cmd -> Model -> Eff Action Model
 handlePluginCommand cmd model = model <# do
   liftIO $ writeInput (fromCommand cmd) model
   return ()
 
+-- | How to handle module 'Action'.
 handleModuleAction :: ModuleCmd -> Model -> Eff Action Model
 handleModuleAction (EvalModule cmd) model = handlePluginCommand cmd model 
 handleModuleAction (CheckModule cmd) model = handlePluginCommand cmd model
@@ -240,6 +266,7 @@ handleModuleAction (HelpModule cmd) model = case (msgMessage $ getMessage cmd) o
   _  -> handlePluginCommand cmd model
 handleModuleAction (SourceModule cmd) model = handlePluginCommand cmd model
 
+-- | How to handle 'Action'.
 handleAction :: Action -> Model -> Eff Action Model
 handleAction (SendEverything msg) model = model <# do
   liftIO $ writeInput msg model
@@ -268,7 +295,8 @@ handleAction (SendBack msg) model = model <# do
             }
       _ <- liftClientM (sendMessage req)
       pure ()
-  
+
+-- | Run Telegram bot.
 runTelegramBot :: Token -> TelegramState -> IO ()
 runTelegramBot token tgstate = do
   env <- defaultTelegramClientEnv token
@@ -277,6 +305,7 @@ runTelegramBot token tgstate = do
     response <- readOutput tgstate
     botActionFun (SendBack response)
 
+-- | Help command text.
 helpCmd :: Text
 helpCmd = "Lambdabot for Telegram provides following plugins:\n\
 \\n\
