@@ -22,6 +22,7 @@ import GHC.TypeLits
 
 import Lambdabot.Plugin.Telegram.Shared
 
+-- | Helper type class used to derive 'FromCommand' via DeriveGeneric extension.
 class GFromCommand command where
   gGetMessage :: command proxy -> Msg
   gGetPrefix :: command proxy -> Text
@@ -69,15 +70,20 @@ class FromCommand command where
   default getPrefix :: (Generic command, GFromCommand (Rep command)) => command -> Text
   getPrefix x = gGetPrefix (from x)
 
+-- | Type class to identify the essence of incoming command and transform it to 'Msg' transport type.
 instance FromCommand Msg where
   getMessage = id
   getPrefix = const ""
 
+-- | Transform incoming telegram command into 'Msg'.
 fromCommand :: FromCommand command => command -> Msg
 fromCommand cmd = old { msgMessage = getPrefix cmd <> " " <> msgMessage old }
     where
       old = getMessage cmd
 
+-- ** Helpers
+
+-- | Helper to transform text into kebab case.
 toKebabCase :: Text -> Text
 toKebabCase txt =
   let str = Text.unpack txt

@@ -27,6 +27,12 @@ import Lambdabot.Plugin.Telegram.Shared
 import Lambdabot.Plugin.Telegram.Message
 
 
+-- | In order to read messages from a different plugin, it is necessary
+-- to set a callback with a known label. This function is a main entry point
+-- as a plugin callback.
+--
+-- Since we needed an extended functionality from @eval@ plugin,
+-- we used these non-exported functions from corresponding @lambdabot-haskell-plugins@ module.
 doTGMSG :: IrcMessage -> Telegram ()
 doTGMSG msg = do
   ignored     <- lift $ checkIgnore msg
@@ -89,8 +95,7 @@ doPublicMsg commands msg target s r
     | commands `arePrefixesOf` s  = doMsg msg (tail s) r target
     | otherwise                   = doIGNORE msg
 
---
--- normal commands.
+-- | normal commands.
 --
 -- check privledges, do any spell correction, dispatch, handling
 -- possible timeouts.
