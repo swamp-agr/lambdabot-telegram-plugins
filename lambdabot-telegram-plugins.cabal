@@ -26,6 +26,9 @@ description:        Lambdabot is an IRC bot written over several years by
                     .
                     This package is a combination of both Lambdabot and Telegram bot.
 
+homepage:       https://github.com/swamp-agr/lambdabot-telegram-plugins#readme
+bug-reports:    https://github.com/swamp-agr/lambdabot-telegram-plugins/issues
+
 -- A copyright notice.
 -- copyright:
 category:           Development, Web
