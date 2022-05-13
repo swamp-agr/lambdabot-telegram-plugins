@@ -27,6 +27,7 @@ defaultExts =
     [ "ImplicitPrelude" -- workaround for bug in hint package
     , "ExtendedDefaultRules"
     , "TypeApplications"
+    , "MagicHash"
     ]
 
 -- | Language extensions used by Telegram Lambdabot: combination of predefined 'defaultExts' and user-defined ones.
