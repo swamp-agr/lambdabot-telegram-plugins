@@ -40,6 +40,7 @@ trustedPkgs =
     , "base"
     , "bytestring"
     , "containers"
+    , "ghc-prim"
     , "lambdabot-trusted"
     , "random"
     ]
