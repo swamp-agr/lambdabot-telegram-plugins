@@ -1,5 +1,9 @@
 # Revision history for telegram-lambdabot
 
+## 0.2.1 -- 2022-09-24
+
+* Bump `telegram-bot-simple` and fix runtime when receive `custom_emoji` update (see [#32](https://github.com/swamp-agr/lambdabot-telegram-plugins/pull/32));
+
 ## 0.2.0 -- 2022-05-12
 
 Implementation phase is finished. Lambdabot might be considered ready with current release.

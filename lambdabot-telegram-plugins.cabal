@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               lambdabot-telegram-plugins
-version:            0.2.0
+version:            0.2.1
 
 -- A short (one-line) description of the package.
 -- synopsis:
