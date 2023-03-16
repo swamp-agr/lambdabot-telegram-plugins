@@ -53,6 +53,7 @@ library
                     , edit-distance
                     , haskell-src-exts-simple
                     , telegram-bot-simple >= 0.6
+                    , telegram-bot-api
                     , text
                     , lambdabot-core
                     , lifted-base

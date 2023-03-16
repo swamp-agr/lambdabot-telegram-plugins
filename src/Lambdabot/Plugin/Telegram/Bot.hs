@@ -292,6 +292,7 @@ handleAction (SendBack msg) model = model <# do
             , sendMessageReplyToMessageId      = mreplyMessageId
             , sendMessageAllowSendingWithoutReply = Nothing
             , sendMessageReplyMarkup           = Nothing
+            , sendMessageMessageThreadId       = Nothing
             }
       _ <- liftClientM (sendMessage req)
       pure ()
