@@ -1,3 +1,6 @@
 packages: .
 
 write-ghc-environment-files: never
+
+allow-newer: HTTP:network
+allow-newer: HTTP:base

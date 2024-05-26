@@ -286,13 +286,14 @@ handleAction (SendBack msg) model = model <# do
             , sendMessageText                  = "```\n" <> response <> "\n```\n"
             , sendMessageParseMode             = Just MarkdownV2
             , sendMessageEntities              = Nothing
-            , sendMessageDisableWebPagePreview = Nothing
             , sendMessageDisableNotification   = Nothing
             , sendMessageProtectContent        = Nothing
             , sendMessageReplyToMessageId      = mreplyMessageId
-            , sendMessageAllowSendingWithoutReply = Nothing
             , sendMessageReplyMarkup           = Nothing
             , sendMessageMessageThreadId       = Nothing
+            , sendMessageBusinessConnectionId  = Nothing
+            , sendMessageLinkPreviewOptions    = Nothing
+            , sendMessageReplyParameters       = Nothing
             }
       _ <- liftClientM (sendMessage req)
       pure ()
