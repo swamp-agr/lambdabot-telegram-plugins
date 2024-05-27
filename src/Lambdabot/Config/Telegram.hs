@@ -42,6 +42,7 @@ trustedPkgs =
     , "containers"
     , "lambdabot-trusted"
     , "random"
+    , "ghc-prim"
     ]
 
 -- | Set of trusted packages. Combination of predefined 'trustedPkgs' and user-defined ones.
