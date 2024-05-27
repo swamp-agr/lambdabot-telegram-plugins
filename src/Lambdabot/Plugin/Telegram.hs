@@ -243,6 +243,7 @@ args load src exts trusted = concat
     , map ("-X" ++) exts
     , ["--no-imports", "-l", load]
     , ["--expression=" ++ decodeString src]
+    , ["--time-limit=" ++ "120"]
     , ["+RTS", "-N", "-RTS"]
     ]
 

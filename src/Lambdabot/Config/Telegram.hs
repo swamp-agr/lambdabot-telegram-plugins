@@ -14,7 +14,7 @@ config "telegramBotName"           [t| String                  |] [| "TelegramLa
 config "telegramLambdabotVersion"  [t| Version                 |] [| Version [] [] |]
 
 -- | Path to @mueval@ executable.
-config "muevalBinary"       [t| String                  |] [| "mueval"      |]
+config "muevalBinary"       [t| String                  |] [| "mueval-core"      |]
 
 
 -- | Extensions to enable for the interpreted expression
