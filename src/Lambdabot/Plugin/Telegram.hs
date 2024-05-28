@@ -125,7 +125,7 @@ telegramPlugin = newModule
               ]
         }
     , (command "run")
-        { help = say "run <expr>. You have Haskell, 3 seconds and no IO. Go nuts!"
+        { help = say "run <expr>. You have Haskell, a few seconds and no IO. Go nuts!"
         , process = lim80 . runGHC
         }
     , (command "let")
@@ -173,7 +173,7 @@ feed chatId msgId msg = do
             '!':xs -> xs
             _      -> cmdPrefix ++ dropWhile (== ' ') (Text.unpack msg)
     -- note that `msg'` is unicode, but lambdabot wants utf-8 lists of bytes
-    lb . void . timeout (15 * 1000 * 1000) . received $
+    lb . void . timeout (25 * 1000 * 1000) . received $
       makeIrcMessage chatId msgId (Text.pack $ encodeString msg')
 
 -- | Transcoding the response from IRC @system@ plugin and sending message back to Telegram. 
@@ -243,7 +243,7 @@ args load src exts trusted = concat
     , map ("-X" ++) exts
     , ["--no-imports", "-l", load]
     , ["--expression=" ++ decodeString src]
-    , ["--time-limit=" ++ "480"]
+    , ["--time-limit=240"]
     , ["--inferred-type"]
     , ["+RTS", "-N2", "-RTS"]
     ]
