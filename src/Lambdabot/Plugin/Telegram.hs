@@ -243,8 +243,9 @@ args load src exts trusted = concat
     , map ("-X" ++) exts
     , ["--no-imports", "-l", load]
     , ["--expression=" ++ decodeString src]
-    , ["--time-limit=" ++ "240"]
-    , ["+RTS", "-N", "-RTS"]
+    , ["--time-limit=" ++ "480"]
+    , ["--inferred-type"]
+    , ["+RTS", "-N2", "-RTS"]
     ]
 
 -- | Determine whether command belongs to @eval@ plugin or not.
