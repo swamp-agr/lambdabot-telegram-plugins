@@ -363,8 +363,8 @@ customComp chatInfo src = do
     ghc <- getConfig ghcBinary
     (c, o',e') <- io (readProcessWithExitCode ghc ghcArgs "")
     -- cleanup, 'try' because in case of error the files are not generated
-    -- _ <- io (try (removeFile hi) :: IO (Either SomeException ()))
-    -- _ <- io (try (removeFile lib)  :: IO (Either SomeException ()))
+    _ <- io (try (removeFile hi) :: IO (Either SomeException ()))
+    _ <- io (try (removeFile lib)  :: IO (Either SomeException ()))
 
     case (mungeEnc o', mungeEnc e') of
         ([],[]) | c /= ExitSuccess -> do
